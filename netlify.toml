@@ -1,5 +1,9 @@
 [build]
-  command = "npm run build:web"
+  # Applies pending Prisma migrations against DATABASE_URL/DIRECT_URL (Netlify's build
+  # servers reach the DB directly, unlike some restricted local networks), then builds
+  # the frontend. Safe to run on every deploy: `migrate deploy` is a no-op if nothing
+  # is pending.
+  command = "npm run db:deploy -w api && npm run build:web"
   publish = "web/dist"
   functions = "netlify/functions"
 
