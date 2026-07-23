@@ -327,9 +327,32 @@ Volg de PRD-epics 1→4. Per epic:
 
 ---
 
-## 11. Open beslissingen (overgenomen uit PRD §9)
+## 11. Beslissingen (bevestigd)
 
-1. Bevestig platform (PWA) en single-user v1.
-2. Valideer AI-model (`claude-sonnet-5` vs `claude-haiku-4-5`) op nauwkeurigheid/kosten.
-3. Bevestig voedingsbron (Open Food Facts) en de fallback als een product ontbreekt (AI-schatting van kcal-per-100g).
-4. Bevestig privacy-niveau voor fotobewaring (voorstel: direct verwijderen na herkenning).
+De open punten uit PRD §9 zijn bevestigd tijdens de bouw — zie [prd.md](prd.md) §9 voor de
+volledige lijst. Kort: PWA + single-user; stack React/Vite + Fastify/Prisma/SQLite (lokaal);
+voedingsbronnen Open Food Facts + handmatig + AI-tekst (+ AI-foto later), met handmatig als
+altijd-beschikbare terugval; AI-model instelbaar via env (default `claude-opus-4-8`); gewicht
+werkt profielgewicht bij zodat budget meebeweegt; streefgewicht optioneel.
+
+---
+
+## 12. Deployment-doel (Netlify + Supabase)
+
+De architectuur hierboven beschrijft de **lokale/dev-opzet** (Fastify + SQLite). Voor productie
+is het voorstel om serverless te gaan: **Netlify** (frontend + Functions) + **Supabase**
+(Postgres). Reden: statische hosts kunnen de Node-backend niet draaien, en serverless vermijdt
+serverbeheer.
+
+Mapping:
+
+| Lokaal/dev | Productie |
+|---|---|
+| Fastify-server | Netlify Functions (routes → functies), `netlify.toml` redirect `/api/*` |
+| SQLite + Prisma | Supabase Postgres (via `@supabase/supabase-js` of Prisma met Postgres-provider) |
+| `packages/core` | Ongewijzigd hergebruikt |
+| Frontend | Ongewijzigd; roept nog steeds `/api/*` aan |
+
+Secrets (`ANTHROPIC_API_KEY`, Supabase service-role-key) blijven server-side als env-variabelen;
+de frontend bevat geen sleutels. Dit is **nog niet geïmplementeerd** — het volledige plan met
+schema-SQL, `netlify.toml` en stappen staat in **[deployment.md](deployment.md)**.

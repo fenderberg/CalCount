@@ -4,9 +4,9 @@
 |---|---|
 | **Project** | CalCount — AI-ondersteunde calorietracker |
 | **Auteur** | PM (BMAD-methode) |
-| **Datum** | 2026-07-22 |
-| **Versie** | v0.1 (concept ter review) |
-| **Status** | Draft — bevat aannames die bevestigd moeten worden (zie §9) |
+| **Datum** | 2026-07-23 |
+| **Versie** | v1.0 |
+| **Status** | Actief — Epics 1, 2 & 4 gebouwd en geverifieerd; Epic 3 uitgesteld. Zie §11 voor de implementatiestatus. |
 
 ---
 
@@ -32,6 +32,7 @@ Het primaire platform is de smartphone. De eerste versie richt zich op één geb
 | Datum | Versie | Beschrijving | Auteur |
 |---|---|---|---|
 | 2026-07-22 | v0.1 | Eerste concept-PRD volgens BMAD | PM |
+| 2026-07-23 | v1.0 | Beslissingen §9 bevestigd; Epics 1/2/4 gebouwd; Epic 3 uitgesteld; implementatiestatus (§11) toegevoegd | PM |
 
 ---
 
@@ -284,27 +285,42 @@ Als gebruiker wil ik mijn afvaltempo of streefgewicht kunnen aanpassen, zodat ik
 
 ---
 
-## 9. Open Beslissingen & Aannames (te bevestigen)
+## 9. Bevestigde beslissingen
 
-Deze punten heb ik ingevuld met een aanname om de PRD compleet te maken; graag bevestigen of bijstellen:
+Deze punten zijn bevestigd tijdens de bouw (waren eerder open aannames):
 
-1. **Platformkeuze:** PWA (web, mobile-first, installeerbaar) i.p.v. native iOS/Android. Voorstel: PWA voor v1 wegens snelheid en één codebase.
-2. **AI-provider/model:** Claude-visiemodel voor fotoherkenning. Nauwkeurigheid en kosten moeten in een korte proef gevalideerd worden.
-3. **Voedingsdatabase:** bron voor calorie-per-100g bij handmatig loggen (publieke dataset vs. AI-schatting).
-4. **Single-user v1:** geen login; alleen jij als gebruiker. Akkoord?
-5. **Meeteenheden:** metriek (gram, kg, cm). Aangenomen op basis van NL-context.
-6. **Privacy/opslag:** foto's niet langer bewaren dan nodig; data lokaal/op eigen backend. Bevestig gewenst niveau.
-7. **Afvaltempo-standaard:** voorstel standaardtekort van ~0,5 kg/week met veilige ondergrens.
+1. **Platform:** PWA (web, mobile-first, installeerbaar). ✅ bevestigd.
+2. **Scope v1:** single-user, geen login/accounts. ✅ bevestigd.
+3. **Tech stack (lokaal/dev):** React + TypeScript + Vite (PWA) + Tailwind; Fastify + TypeScript; SQLite via Prisma. ✅ bevestigd. *Productie-hostingdoel: Netlify + Supabase — zie [architecture.md](architecture.md) §12 en [deployment.md](deployment.md).*
+4. **Voedingsbronnen:** combinatie van **Open Food Facts** (zoeken), **handmatig** (altijd terugval, offline), **AI-tekstschatting** (Claude) en later **AI-fotoschatting**. ✅ bevestigd. Handmatig is altijd de fallback.
+5. **AI-model:** Claude, server-side via proxy; instelbaar via env (`CALCOUNT_AI_MODEL`, default `claude-opus-4-8`; `claude-haiku-4-5` voor lagere kosten). Nauwkeurigheid/kosten nog te valideren bij Epic 3.
+6. **Meeteenheden:** metriek (gram, kg, cm). ✅ bevestigd.
+7. **Gewicht → budget:** een nieuwe gewichtsmeting werkt het profielgewicht bij, dus TDEE/budget bewegen automatisch mee (FR11). ✅ bevestigd.
+8. **Streefgewicht:** optioneel in te stellen; grafiek toont voortgang naar doel. ✅ bevestigd.
+9. **Afvaltempo-standaard:** ~0,5 kg/week met veilige ondergrens (♀ 1200 / ♂ 1500 kcal). ✅ bevestigd.
 
 ---
 
-## 10. Next Steps
+## 10. Herzien: Epic 3 (AI-fotoherkenning) uitgesteld
 
-### Architect Prompt
-> Neem deze PRD als input en stel een technische architectuur op voor CalCount: een mobile-first PWA met een backend die als AI-proxy dient. Kies concrete technologie voor frontend, backend en opslag; ontwerp het datamodel (profiel, eetlog, gewicht, referentievoeding); specificeer het contract van de AI-fotoherkenning (input, JSON-output, foutafhandeling, kosten/model); en beschrijf hoe de rekenlogica (TDEE/budget) testbaar geïsoleerd wordt. Adresseer de open beslissingen in §9.
+Op verzoek is Epic 3 (foto maken → AI schat calorieën) **uitgesteld**. De onderliggende infrastructuur is er wel op voorbereid: de `photo`-bron bestaat in het datamodel, het API-contract staat in [architecture.md §5](architecture.md), en de log-flow heeft al een AI-tekstschatting die dezelfde correctie-UX gebruikt. Epic 3 vereist een `ANTHROPIC_API_KEY` om echt te testen.
 
-### UX Expert Prompt (optioneel)
-> Ontwerp op basis van §3 de kernschermen (onboarding, hoofd/dagscherm, foto-log-flow, gewicht/product-log-flow, voortgang). Focus op minimale frictie bij loggen en het "één-getal-hoofdscherm".
+De rest van de PRD (Goals, Requirements, UI, Epics 1/2/4) blijft ongewijzigd geldig.
+
+---
+
+## 11. Implementatiestatus
+
+| Epic | Status | Toelichting |
+|---|---|---|
+| 1 — Fundament & Persoonlijk Caloriebudget | ✅ Gebouwd & geverifieerd | Profiel, TDEE/budget, één-getal-hoofdscherm |
+| 2 — Eten loggen & dagoverzicht | ✅ Gebouwd & geverifieerd | Zoeken (OFF), handmatig, AI-tekst, recent; dagtotaal; bewerken/verwijderen; dagnavigatie |
+| 3 — AI-fotoherkenning | ⏸️ Uitgesteld | Zie §10 |
+| 4 — Voortgang & Bijsturen | ✅ Gebouwd & geverifieerd | Gewicht bijhouden, trendgrafiek + streefgewicht, auto-herberekening budget, doel bijstellen |
+
+**Nog niet gedaan:** productie-deployment (voorgesteld: Netlify + Supabase — zie [deployment.md](deployment.md)) en de GitHub-push (repo lokaal gecommit; push vereist accountkoppeling).
+
+Voor de volledige overdracht — hoe lokaal te draaien, repo-structuur, keuzes, openstaande punten — zie **[handoff.md](handoff.md)**.
 
 ### Aanbevolen volgorde
 1. Open beslissingen §9 bevestigen.

@@ -1,6 +1,13 @@
 # CalCount
 
-AI-ondersteunde calorietracker (mobile-first PWA). Zie [docs/prd.md](docs/prd.md) en [docs/architecture.md](docs/architecture.md).
+AI-ondersteunde calorietracker (mobile-first PWA).
+
+## Documentatie
+
+- **[docs/handoff.md](docs/handoff.md)** — lees dit eerst als je het project oppakt (staat, draaien, keuzes, openstaande punten).
+- [docs/prd.md](docs/prd.md) — product requirements (wat & waarom).
+- [docs/architecture.md](docs/architecture.md) — technische architectuur (hoe).
+- [docs/deployment.md](docs/deployment.md) — online zetten (voorstel Netlify + Supabase, nog niet uitgevoerd).
 
 ## Status
 
