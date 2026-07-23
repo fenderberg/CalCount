@@ -6,11 +6,11 @@
 ## TL;DR
 
 CalCount is een **mobile-first PWA** (React + Vite) met een **Fastify-backend** (SQLite lokaal,
-Postgres/Supabase in productie, via Prisma) die als AI-proxy dient. Het is een
+Postgres/Neon in productie, via Prisma) die als AI-proxy dient. Het is een
 AI-ondersteunde calorietracker: profiel → dagbudget → eten loggen → gewicht volgen.
 **Epics 1, 2 en 4 zijn gebouwd en end-to-end geverifieerd.** Epic 3 (AI-fotoherkenning) is
-uitgesteld. De repo is voorbereid voor Netlify + Supabase (zie [deployment.md](deployment.md));
-het Supabase-project/Netlify-site zelf zijn nog niet aangemaakt.
+uitgesteld. De repo is voorbereid voor Netlify + Neon (zie [deployment.md](deployment.md));
+het Neon-project/Netlify-site zelf zijn nog niet aangemaakt.
 
 Documenten: [prd.md](prd.md) (wat & waarom) · [architecture.md](architecture.md) (hoe) ·
 [deployment.md](deployment.md) (online zetten) · dit bestand (overdracht).
@@ -31,15 +31,15 @@ Documenten: [prd.md](prd.md) (wat & waarom) · [architecture.md](architecture.md
 > **Let op — sinds de Postgres-migratie (zie [deployment.md](deployment.md)) is er geen
 > zero-config SQLite meer.** `api/prisma/schema.prisma` wijst nu op Postgres via
 > `DATABASE_URL`/`DIRECT_URL`. Zet die in `api/.env` (zie `api/.env.example`) — eenvoudigst
-> is dezelfde Supabase-connection strings als productie ook lokaal te gebruiken (single-user
-> hobby-app, geen aparte lokale Postgres nodig). Zonder een Supabase-project aangemaakt
+> is dezelfde Neon-connection strings als productie ook lokaal te gebruiken (single-user
+> hobby-app, geen aparte lokale Postgres nodig). Zonder een Neon-project aangemaakt
 > werkt `npm run dev:api` dus nog niet.
 
 ```bash
 # 1. Dependencies (alle workspaces)
 npm install
 
-# 2. Database migreren (Postgres/Supabase; vereist DATABASE_URL/DIRECT_URL in api/.env)
+# 2. Database migreren (Postgres/Neon; vereist DATABASE_URL/DIRECT_URL in api/.env)
 npm run db:setup
 
 # 3. Backend starten (http://localhost:3001)
@@ -121,7 +121,7 @@ De app werkt out-of-the-box zonder configuratie, behalve de AI-tekstschatting:
 | `ANTHROPIC_API_KEY` | backend-omgeving | AI-tekstschatting (Epic 2) en later AI-foto (Epic 3) | — (feature degradeert netjes zonder) |
 | `CALCOUNT_AI_MODEL` | backend-omgeving | AI-model kiezen | `claude-opus-4-8` (bv. `claude-haiku-4-5` voor lagere kosten) |
 | `PORT` | backend-omgeving (lokaal) | Poort backend bij `npm run dev:api` | `3001` |
-| `DATABASE_URL` | backend-omgeving / Netlify | Postgres-verbinding (pooled, runtime) — alleen nodig als je tegen Supabase draait i.p.v. lokale SQLite | — |
+| `DATABASE_URL` | backend-omgeving / Netlify | Postgres-verbinding (pooled, runtime) — alleen nodig als je tegen Neon draait i.p.v. lokale SQLite | — |
 | `DIRECT_URL` | backend-omgeving / Netlify | Postgres-verbinding (direct, alleen voor `prisma migrate`) | — |
 
 Zie `api/.env.example`. Zet nooit een echte sleutel in de repo.
@@ -148,16 +148,16 @@ Deze zijn met de opdrachtgever bevestigd tijdens de bouw:
 - **AI-tekstschatting** vereist `ANTHROPIC_API_KEY`; zonder sleutel toont de UI een nette uitleg en verwijst naar Zoeken/Handmatig.
 - **Open Food Facts** heeft wisselende latency; de zoekopdracht heeft een time-out van 12s en valt terug op de lokale cache. Handmatig invoeren werkt altijd.
 - **Web-bundle ~595 KB** door de grafiek-library (Recharts). Prima, maar code-splitting (grafiek lazy laden) is een nette latere optimalisatie.
-- **SQLite** is prima voor single-user lokaal, maar op veel serverless/ephemeral hosts is de opslag vluchtig — vandaar het voorstel om bij deployment naar Supabase (Postgres) te gaan (zie [deployment.md](deployment.md)).
+- **SQLite** is prima voor single-user lokaal, maar op veel serverless/ephemeral hosts is de opslag vluchtig — vandaar de overstap bij deployment naar Neon (Postgres) (zie [deployment.md](deployment.md)).
 - **Model-default is `claude-opus-4-8`**; voor kosten kun je `CALCOUNT_AI_MODEL=claude-haiku-4-5` zetten en valideren.
 
 ## Openstaande punten & aanbevolen volgende stappen
 
 1. **GitHub-push.** ✅ Gedaan — de repo staat op `github.com/fenderberg/CalCount`.
-2. **Productie-deployment.** Repo-kant klaar voor Netlify + Supabase (zie
+2. **Productie-deployment.** Repo-kant klaar voor Netlify + Neon (zie
    [deployment.md](deployment.md)): Prisma-schema op `postgresql`, `netlify.toml`, één
    Netlify Function (`netlify/functions/api.ts`) die de bestaande Fastify-app hergebruikt.
-   Nog te doen: het Supabase-project en de Netlify-site zelf aanmaken, env-variabelen
+   Nog te doen: het Neon-project en de Netlify-site zelf aanmaken, env-variabelen
    invullen, eerste migratie draaien tegen de echte database, en verifiëren (checklist in
    deployment.md).
 3. **Epic 3 — AI-fotoherkenning.** Contract staat in [architecture.md §5](architecture.md); vereist een `ANTHROPIC_API_KEY`. De log-flow en het datamodel zijn er al op voorbereid (de `photo`-bron bestaat).

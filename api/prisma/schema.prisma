@@ -1,4 +1,4 @@
-// CalCount datamodel (single-user v1). Postgres (Supabase) in productie.
+// CalCount datamodel (single-user v1). Postgres (Neon) in productie.
 
 generator client {
   provider      = "prisma-client-js"

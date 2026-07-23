@@ -7,7 +7,7 @@ AI-ondersteunde calorietracker (mobile-first PWA).
 - **[docs/handoff.md](docs/handoff.md)** — lees dit eerst als je het project oppakt (staat, draaien, keuzes, openstaande punten).
 - [docs/prd.md](docs/prd.md) — product requirements (wat & waarom).
 - [docs/architecture.md](docs/architecture.md) — technische architectuur (hoe).
-- [docs/deployment.md](docs/deployment.md) — online zetten (Netlify + Supabase; repo-kant klaar, account-koppeling nog te doen).
+- [docs/deployment.md](docs/deployment.md) — online zetten (Netlify + Neon; repo-kant klaar, account-koppeling nog te doen).
 
 ## Status
 
@@ -53,7 +53,7 @@ web             React + Vite PWA (mobile-first, Tailwind)
 
 ## Aan de slag
 
-> De backend gebruikt Postgres (Supabase) via Prisma — zie
+> De backend gebruikt Postgres (Neon) via Prisma — zie
 > [docs/deployment.md](docs/deployment.md). Zet `DATABASE_URL`/`DIRECT_URL` in `api/.env`
 > (voorbeeld in `api/.env.example`) voordat je `db:setup`/`dev:api` draait.
 

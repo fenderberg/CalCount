@@ -337,11 +337,13 @@ werkt profielgewicht bij zodat budget meebeweegt; streefgewicht optioneel.
 
 ---
 
-## 12. Deployment-doel (Netlify + Supabase)
+## 12. Deployment-doel (Netlify + Neon)
 
 Voor productie draait CalCount serverless: **Netlify** (frontend + één Function) +
-**Supabase** (Postgres). Reden: statische hosts kunnen de Node-backend niet draaien, en
-serverless vermijdt serverbeheer.
+**Neon** (managed Postgres). Reden: statische hosts kunnen de Node-backend niet draaien,
+en serverless vermijdt serverbeheer. (Neon i.p.v. Supabase omdat het gratis-projectlimiet
+bij Supabase al bereikt was — via Prisma maakt dit voor de code geen verschil, zie
+[deployment.md](deployment.md).)
 
 Mapping (zoals daadwerkelijk geïmplementeerd — zie [deployment.md](deployment.md)):
 
@@ -349,10 +351,10 @@ Mapping (zoals daadwerkelijk geïmplementeerd — zie [deployment.md](deployment
 |---|---|
 | Fastify-server (`api/src/server.ts` roept `buildApp()` + `.listen()` aan) | Eén Netlify Function (`netlify/functions/api.ts`) wrapt dezelfde `buildApp()` met `aws-lambda-fastify`; `netlify.toml` redirect `/api/*` + `/health` |
 | Prisma + Postgres (lokaal én productie — geen SQLite meer) | Ongewijzigd; alleen `DATABASE_URL`/`DIRECT_URL` verschillen per omgeving |
-| `api/src/routes/*`, `api/src/services/*`, `packages/core` | Ongewijzigd hergebruikt — geen herschrijf naar `@supabase/supabase-js` |
+| `api/src/routes/*`, `api/src/services/*`, `packages/core` | Ongewijzigd hergebruikt — Prisma blijft de data-toegangslaag, geen provider-specifieke SDK |
 | Frontend | Ongewijzigd; roept nog steeds `/api/*` aan |
 
 Secrets (`ANTHROPIC_API_KEY`, `DATABASE_URL`, `DIRECT_URL`) blijven server-side als
 env-variabelen; de frontend bevat geen sleutels. De repo-kant is geïmplementeerd; het
-aanmaken van het Supabase-project en de Netlify-site zelf staat nog open — zie
+aanmaken van het Neon-project en de Netlify-site zelf staat nog open — zie
 **[deployment.md](deployment.md)** voor de precieze stappen en verificatie.

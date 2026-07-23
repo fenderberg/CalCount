@@ -291,7 +291,7 @@ Deze punten zijn bevestigd tijdens de bouw (waren eerder open aannames):
 
 1. **Platform:** PWA (web, mobile-first, installeerbaar). ✅ bevestigd.
 2. **Scope v1:** single-user, geen login/accounts. ✅ bevestigd.
-3. **Tech stack (lokaal/dev):** React + TypeScript + Vite (PWA) + Tailwind; Fastify + TypeScript; SQLite via Prisma. ✅ bevestigd. *Productie-hostingdoel: Netlify + Supabase — zie [architecture.md](architecture.md) §12 en [deployment.md](deployment.md).*
+3. **Tech stack:** React + TypeScript + Vite (PWA) + Tailwind; Fastify + TypeScript; Postgres via Prisma (Neon in productie, zie hieronder). ✅ bevestigd. *Productie-hostingdoel: Netlify + Neon — zie [architecture.md](architecture.md) §12 en [deployment.md](deployment.md).*
 4. **Voedingsbronnen:** combinatie van **Open Food Facts** (zoeken), **handmatig** (altijd terugval, offline), **AI-tekstschatting** (Claude) en later **AI-fotoschatting**. ✅ bevestigd. Handmatig is altijd de fallback.
 5. **AI-model:** Claude, server-side via proxy; instelbaar via env (`CALCOUNT_AI_MODEL`, default `claude-opus-4-8`; `claude-haiku-4-5` voor lagere kosten). Nauwkeurigheid/kosten nog te valideren bij Epic 3.
 6. **Meeteenheden:** metriek (gram, kg, cm). ✅ bevestigd.
@@ -318,7 +318,7 @@ De rest van de PRD (Goals, Requirements, UI, Epics 1/2/4) blijft ongewijzigd gel
 | 3 — AI-fotoherkenning | ⏸️ Uitgesteld | Zie §10 |
 | 4 — Voortgang & Bijsturen | ✅ Gebouwd & geverifieerd | Gewicht bijhouden, trendgrafiek + streefgewicht, auto-herberekening budget, doel bijstellen |
 
-**Nog niet gedaan:** productie-deployment (voorgesteld: Netlify + Supabase — zie [deployment.md](deployment.md)) en de GitHub-push (repo lokaal gecommit; push vereist accountkoppeling).
+**Nog niet gedaan:** productie-deployment (repo-kant klaar voor Netlify + Neon — zie [deployment.md](deployment.md); Neon-project en Netlify-site zelf nog aan te maken).
 
 Voor de volledige overdracht — hoe lokaal te draaien, repo-structuur, keuzes, openstaande punten — zie **[handoff.md](handoff.md)**.
 
