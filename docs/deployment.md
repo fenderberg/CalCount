@@ -83,8 +83,8 @@ Neon Postgres  ◀── DATABASE_URL (pooled, runtime) / DIRECT_URL (direct, mi
   Netlify-build de Prisma-client met het juiste binary target wordt gegenereerd),
   `db:deploy: prisma migrate deploy` (voor het toepassen van migraties op de
   productie-database, aangeroepen vanuit `netlify.toml`'s `build.command`); Prisma is
-  opgehoogd van 5.22 naar 6.19 (5.22's engine-binary kon Neon niet bereiken, zie hieronder
-  — 6.19 wél, vermoedelijk door een recentere ingebouwde cert-store).
+  opgehoogd van 5.22 naar 6.19 (geen functionele noodzaak gebleken, maar wel de nieuwste
+  stabiele 6.x — zie de kanttekening hieronder over wat het *echte* probleem bleek te zijn).
 - Root `package.json` — de nieuwe dependencies `aws-lambda-fastify` en
   `@netlify/functions` (horen bij `netlify/functions/api.ts`, dat buiten de `api`-workspace
   valt), plus een root `tsconfig.json` zodat die functie los te typecheck en is.
@@ -96,12 +96,18 @@ Neon Postgres  ◀── DATABASE_URL (pooled, runtime) / DIRECT_URL (direct, mi
   een databaseverbinding nodig te hebben) en al gecommit. Ze wordt pas daadwerkelijk
   *toegepast* tijdens de eerste Netlify-build (zie Stap 2 en `netlify.toml`'s
   `build.command`).
-  > **Waarom niet lokaal toegepast:** op de ontwikkelmachine kon de Prisma CLI de Neon-
-  > database niet bereiken (`P1001`), terwijl een rechtstreekse Postgres/TLS-handshake
-  > vanuit Node prima lukte — vermoedelijk blokkeert lokale netwerk-/beveiligingssoftware
-  > (firewall/EDR) specifiek het nieuw-gedownloade Prisma-engine-binary, iets wat op
-  > Netlify's build-servers niet speelt. Vandaar de keuze om `prisma migrate deploy` in
-  > de Netlify build-command te zetten in plaats van lokaal te migreren.
+  > **Wat er echt mis was (leerpunt):** de eerste poging om te migreren gaf op zowel de
+  > ontwikkelmachine als in Netlify's build een generieke `P1001: Can't reach database
+  > server`. Na uitgebreid uitsluiten van netwerk-/firewall-/IPv6-oorzaken bleek de
+  > werkelijke fout veel simpeler: één teken fout overgetypt uit een screenshot van de
+  > Neon-connection-string (`a5vi2l48` i.p.v. `asvi2l48` in de endpoint-hostnaam). DNS en
+  > de TLS-handshake slaagden alsnog (wildcard-certificaat + gedeelde regionale IP's dekken
+  > élke subdomeinnaam), maar Neon's proxy kon de niet-bestaande endpoint-id niet naar een
+  > echte compute routeren, wat zich als een connectie-timeout/`P1001` uitte in plaats van
+  > een duidelijke "endpoint niet gevonden"-fout. Met de juiste hostnaam werkt gewone
+  > Prisma over een normale TCP-verbinding gewoon — zowel lokaal als vanuit Netlify's
+  > build. **Praktische les:** kopieer connection strings altijd als tekst (Neon's "Copy
+  > snippet"-knop), nooit overtypen vanaf een screenshot.
 
 ## Nog te doen (vereist accounts/dashboard-acties)
 
@@ -119,18 +125,17 @@ verbinding:
 
 ### Stap 2 — Netlify-site koppelen (dit past ook meteen de migratie toe)
 
-1. Netlify → "Add new site" → "Import from Git" → kies de `fenderberg/CalCount`-repo.
-   Build-instellingen komen uit `netlify.toml`.
-2. Zet de env-variabelen in Netlify → Site settings → Environment:
+De site (`calcount-fenderberg`, https://calcount-fenderberg.netlify.app) is al aangemaakt
+via `netlify-cli` (team `fenderberg`/"TAP"), en de vier env-variabelen (`DATABASE_URL`,
+`DIRECT_URL`, `ANTHROPIC_API_KEY`, `CALCOUNT_AI_MODEL`) staan er al op (via
+`netlify env:set --secret`). Wat nog moet:
 
-   | Variabele | Waarde | Geheim? |
-   |---|---|---|
-   | `DATABASE_URL` | pooled Neon-connection string | **ja** |
-   | `DIRECT_URL` | directe Neon-connection string | **ja** (gebruikt door `prisma migrate deploy` in de build-command) |
-   | `ANTHROPIC_API_KEY` | je Claude-sleutel | **ja** |
-   | `CALCOUNT_AI_MODEL` | bv. `claude-haiku-4-5` (optioneel) | nee |
-
-3. Deploy.
+1. Netlify-dashboard → `calcount-fenderberg` → Project configuration → Build & deploy →
+   Continuous deployment → **Link repository** → GitHub → autoriseren indien gevraagd →
+   kies `fenderberg/CalCount`. Dit vereist een browser-actie (GitHub-autorisatie) en kan
+   niet via de CLI.
+2. Build-instellingen komen automatisch uit `netlify.toml`. Trigger een deploy (gebeurt
+   meestal automatisch zodra de koppeling actief is).
 
 ### Stap 3 — Lokaal testen met `netlify dev` (optioneel)
 
@@ -143,10 +148,8 @@ npx netlify dev
 ```
 
 Dit draait `netlify/functions/api.ts` lokaal via dezelfde esbuild/Lambda-emulatie als
-productie. **Let op:** als deze ontwikkelmachine dezelfde lokale connectiviteitsbeperking
-heeft als hierboven beschreven (Prisma CLI bereikte Neon niet, terwijl Node dat wel kon),
-kan de lokaal gedraaide functie om dezelfde reden geen queries op Neon uitvoeren — dat is
-dan geen bug in de functie zelf, en zegt niets over of de échte Netlify-deploy werkt.
+productie — het beste moment om een bundel- of Prisma-binary-probleem te ontdekken vóór
+een echte deploy.
 
 ## Verificatie na deploy
 
@@ -162,10 +165,8 @@ dan geen bug in de functie zelf, en zegt niets over of de échte Netlify-deploy 
    "cannot find module", geen Prisma "engine not found" — dat zou op een verkeerd
    `binaryTargets`/`included_files` wijzen).
 6. Netlify-dashboard → Deploys → build log van de eerste deploy: controleer dat
-   `npm run db:deploy -w api` zonder fouten liep (dit toont de migratie daadwerkelijk
-   toepassen, vanaf Netlify's eigen build-servers — geen lokale netwerkbeperking hier).
-7. (Optioneel, alleen als lokale Prisma-connectiviteit wél werkt op je machine):
-   `npx prisma migrate status --schema=api/prisma/schema.prisma` (met `DIRECT_URL` gezet)
+   `npm run db:deploy -w api` zonder fouten liep.
+7. `npx prisma migrate status --schema=api/prisma/schema.prisma` (met `DIRECT_URL` gezet)
    → "Database schema is up to date".
 
 ## Alternatief: alles op één Node-host
