@@ -1,0 +1,15 @@
+node_modules/
+dist/
+*.log
+
+# Prisma / SQLite
+api/prisma/dev.db
+api/prisma/dev.db-journal
+
+# PWA build output
+web/dev-dist/
+
+# Machine-local Claude Code config
+.claude/settings.local.json
+
+.DS_Store

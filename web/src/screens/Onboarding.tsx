@@ -1,0 +1,231 @@
+import type { ActivityLevel, Sex, UserProfile } from '@calcount/core';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
+import { saveProfile, type StoredProfile } from '../api.js';
+
+const ACTIVITY_OPTIONS: { value: ActivityLevel; label: string }[] = [
+  { value: 'sedentary', label: 'Zittend (weinig beweging)' },
+  { value: 'light', label: 'Licht actief (1-3x/week)' },
+  { value: 'moderate', label: 'Matig actief (3-5x/week)' },
+  { value: 'active', label: 'Actief (6-7x/week)' },
+  { value: 'very_active', label: 'Zeer actief (fysiek werk/sport)' },
+];
+
+// Doeltempo in kg/week; negatief = afvallen.
+const GOAL_OPTIONS: { value: number; label: string }[] = [
+  { value: -0.75, label: 'Snel afvallen (0,75 kg/week)' },
+  { value: -0.5, label: 'Afvallen (0,5 kg/week)' },
+  { value: -0.25, label: 'Rustig afvallen (0,25 kg/week)' },
+  { value: 0, label: 'Gewicht behouden' },
+];
+
+interface Props {
+  existing?: StoredProfile;
+  onDone: () => void;
+  onCancel?: () => void;
+}
+
+export function Onboarding({ existing, onDone, onCancel }: Props) {
+  const queryClient = useQueryClient();
+  const [heightCm, setHeightCm] = useState(existing?.heightCm?.toString() ?? '');
+  const [weightKg, setWeightKg] = useState(existing?.weightKg?.toString() ?? '');
+  const [birthDate, setBirthDate] = useState(existing?.birthDate ?? '');
+  const [sex, setSex] = useState<Sex>(existing?.sex ?? 'male');
+  const [activityLevel, setActivityLevel] = useState<ActivityLevel>(
+    existing?.activityLevel ?? 'moderate',
+  );
+  const [goalRateKgPerWeek, setGoalRate] = useState<number>(
+    existing?.goalRateKgPerWeek ?? -0.5,
+  );
+  const [targetWeightKg, setTargetWeight] = useState(
+    existing?.targetWeightKg?.toString() ?? '',
+  );
+
+  const mutation = useMutation({
+    mutationFn: (p: UserProfile) => saveProfile(p),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['budget'] });
+      onDone();
+    },
+  });
+
+  function submit(e: React.FormEvent) {
+    e.preventDefault();
+    mutation.mutate({
+      heightCm: Number(heightCm),
+      weightKg: Number(weightKg),
+      birthDate,
+      sex,
+      activityLevel,
+      goalRateKgPerWeek,
+      targetWeightKg: targetWeightKg ? Number(targetWeightKg) : undefined,
+    });
+  }
+
+  return (
+    <div className="mx-auto min-h-dvh max-w-md px-5 py-8">
+      <h1 className="text-2xl font-bold text-slate-900">
+        {existing ? 'Profiel wijzigen' : 'Welkom bij CalCount'}
+      </h1>
+      <p className="mt-1 text-slate-500">
+        Vul je gegevens in zodat we je dagbudget kunnen berekenen.
+      </p>
+
+      <form onSubmit={submit} className="mt-6 space-y-5">
+        <Field label="Lengte (cm)">
+          <input
+            type="number"
+            inputMode="numeric"
+            required
+            min={50}
+            max={260}
+            value={heightCm}
+            onChange={(e) => setHeightCm(e.target.value)}
+            className={inputClass}
+          />
+        </Field>
+
+        <Field label="Gewicht (kg)">
+          <input
+            type="number"
+            inputMode="decimal"
+            step="0.1"
+            required
+            min={20}
+            max={400}
+            value={weightKg}
+            onChange={(e) => setWeightKg(e.target.value)}
+            className={inputClass}
+          />
+        </Field>
+
+        <Field label="Geboortedatum">
+          <input
+            type="date"
+            required
+            value={birthDate}
+            onChange={(e) => setBirthDate(e.target.value)}
+            className={inputClass}
+          />
+        </Field>
+
+        <Field label="Geslacht">
+          <div className="grid grid-cols-2 gap-3">
+            <ToggleButton active={sex === 'male'} onClick={() => setSex('male')}>
+              Man
+            </ToggleButton>
+            <ToggleButton active={sex === 'female'} onClick={() => setSex('female')}>
+              Vrouw
+            </ToggleButton>
+          </div>
+        </Field>
+
+        <Field label="Activiteitsniveau">
+          <select
+            value={activityLevel}
+            onChange={(e) => setActivityLevel(e.target.value as ActivityLevel)}
+            className={inputClass}
+          >
+            {ACTIVITY_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </Field>
+
+        <Field label="Doel">
+          <select
+            value={goalRateKgPerWeek}
+            onChange={(e) => setGoalRate(Number(e.target.value))}
+            className={inputClass}
+          >
+            {GOAL_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </Field>
+
+        <Field label="Streefgewicht (kg) — optioneel">
+          <input
+            type="number"
+            inputMode="decimal"
+            step="0.1"
+            min={20}
+            max={400}
+            value={targetWeightKg}
+            onChange={(e) => setTargetWeight(e.target.value)}
+            placeholder="Bijv. 80"
+            className={inputClass}
+          />
+        </Field>
+
+        {mutation.isError && (
+          <p className="text-sm text-red-600">
+            {(mutation.error as Error).message}
+          </p>
+        )}
+
+        <div className="space-y-3 pt-2">
+          <button
+            type="submit"
+            disabled={mutation.isPending}
+            className="w-full rounded-2xl bg-green-600 py-4 text-lg font-semibold text-white active:bg-green-700 disabled:opacity-50"
+          >
+            {mutation.isPending ? 'Opslaan...' : 'Opslaan'}
+          </button>
+          {onCancel && (
+            <button
+              type="button"
+              onClick={onCancel}
+              className="w-full rounded-2xl py-3 text-slate-500"
+            >
+              Annuleren
+            </button>
+          )}
+        </div>
+      </form>
+    </div>
+  );
+}
+
+const inputClass =
+  'w-full rounded-2xl border border-slate-200 bg-white px-4 py-4 text-lg outline-none focus:border-green-500';
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="block">
+      <span className="mb-1.5 block text-sm font-medium text-slate-700">
+        {label}
+      </span>
+      {children}
+    </label>
+  );
+}
+
+function ToggleButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-2xl border py-4 text-lg font-medium ${
+        active
+          ? 'border-green-600 bg-green-50 text-green-700'
+          : 'border-slate-200 bg-white text-slate-600'
+      }`}
+    >
+      {children}
+    </button>
+  );
+}

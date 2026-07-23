@@ -1,0 +1,64 @@
+// CalCount datamodel (single-user v1). SQLite; migratiepad naar Postgres open.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// Single-user: er is precies één profiel (id = 1).
+model Profile {
+  id                Int      @id @default(1)
+  heightCm          Float
+  weightKg          Float
+  birthDate         String // ISO-datum YYYY-MM-DD
+  sex               String // 'male' | 'female'
+  activityLevel     String // sedentary | light | moderate | active | very_active
+  goalRateKgPerWeek Float
+  targetWeightKg    Float?
+  updatedAt         DateTime @updatedAt
+}
+
+// Eetlog (Epic 2).
+model FoodEntry {
+  id         String   @id @default(cuid())
+  loggedAt   DateTime
+  name       String
+  source     String // 'search' | 'manual' | 'ai' | 'recent' | 'photo'
+  grams      Float?
+  calories   Float
+  protein    Float?
+  carbs      Float?
+  fat        Float?
+  isEstimate Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@index([loggedAt])
+}
+
+// Referentie-cache: producten met kcal/100g (uit Open Food Facts, handmatig of AI).
+// Voedt de zoek-/recent-lijst en maakt her-loggen snel en offline mogelijk.
+model FoodReference {
+  id              String   @id @default(cuid())
+  name            String
+  caloriesPer100g Float
+  proteinPer100g  Float?
+  carbsPer100g    Float?
+  fatPer100g      Float?
+  source          String // 'off' | 'manual' | 'ai'
+  externalId      String?  @unique
+  lastUsedAt      DateTime @default(now())
+
+  @@index([lastUsedAt])
+}
+
+model WeightEntry {
+  id         String   @id @default(cuid())
+  measuredAt DateTime
+  weightKg   Float
+
+  @@index([measuredAt])
+}
