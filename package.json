@@ -14,5 +14,13 @@
     "dev:web": "npm run dev -w web",
     "db:setup": "npm run db:setup -w api",
     "build:web": "npm run build -w web"
+  },
+  "dependencies": {
+    "aws-lambda-fastify": "^2.2.0"
+  },
+  "devDependencies": {
+    "@netlify/functions": "^5.3.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.5.4"
   }
 }

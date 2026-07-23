@@ -2,6 +2,12 @@ node_modules/
 dist/
 *.log
 
+# Env files (secrets) — never commit real values, only .env.example files.
+.env
+.env.*
+!.env.example
+!api/.env.example
+
 # Prisma / SQLite
 api/prisma/dev.db
 api/prisma/dev.db-journal

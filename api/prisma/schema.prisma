@@ -1,12 +1,14 @@
-// CalCount datamodel (single-user v1). SQLite; migratiepad naar Postgres open.
+// CalCount datamodel (single-user v1). Postgres (Supabase) in productie.
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // Single-user: er is precies één profiel (id = 1).

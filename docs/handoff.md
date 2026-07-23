@@ -5,11 +5,12 @@
 
 ## TL;DR
 
-CalCount is een **mobile-first PWA** (React + Vite) met een **Fastify-backend** (SQLite via
-Prisma) die als AI-proxy dient. Het is een AI-ondersteunde calorietracker: profiel → dagbudget
-→ eten loggen → gewicht volgen. **Epics 1, 2 en 4 zijn gebouwd en end-to-end geverifieerd.**
-Epic 3 (AI-fotoherkenning) is uitgesteld. Productie-deployment is nog niet gedaan (voorstel:
-Netlify + Supabase, zie [deployment.md](deployment.md)).
+CalCount is een **mobile-first PWA** (React + Vite) met een **Fastify-backend** (SQLite lokaal,
+Postgres/Supabase in productie, via Prisma) die als AI-proxy dient. Het is een
+AI-ondersteunde calorietracker: profiel → dagbudget → eten loggen → gewicht volgen.
+**Epics 1, 2 en 4 zijn gebouwd en end-to-end geverifieerd.** Epic 3 (AI-fotoherkenning) is
+uitgesteld. De repo is voorbereid voor Netlify + Supabase (zie [deployment.md](deployment.md));
+het Supabase-project/Netlify-site zelf zijn nog niet aangemaakt.
 
 Documenten: [prd.md](prd.md) (wat & waarom) · [architecture.md](architecture.md) (hoe) ·
 [deployment.md](deployment.md) (online zetten) · dit bestand (overdracht).
@@ -27,11 +28,18 @@ Documenten: [prd.md](prd.md) (wat & waarom) · [architecture.md](architecture.md
 
 **Vereisten:** Node 20+ (getest op Node 25) en npm 10+.
 
+> **Let op — sinds de Postgres-migratie (zie [deployment.md](deployment.md)) is er geen
+> zero-config SQLite meer.** `api/prisma/schema.prisma` wijst nu op Postgres via
+> `DATABASE_URL`/`DIRECT_URL`. Zet die in `api/.env` (zie `api/.env.example`) — eenvoudigst
+> is dezelfde Supabase-connection strings als productie ook lokaal te gebruiken (single-user
+> hobby-app, geen aparte lokale Postgres nodig). Zonder een Supabase-project aangemaakt
+> werkt `npm run dev:api` dus nog niet.
+
 ```bash
 # 1. Dependencies (alle workspaces)
 npm install
 
-# 2. Database aanmaken (SQLite: api/prisma/dev.db)
+# 2. Database migreren (Postgres/Supabase; vereist DATABASE_URL/DIRECT_URL in api/.env)
 npm run db:setup
 
 # 3. Backend starten (http://localhost:3001)
@@ -68,11 +76,14 @@ CalCount/
 ├─ api/                      Fastify backend
 │  ├─ prisma/schema.prisma   Datamodel (Profile, FoodEntry, WeightEntry, FoodReference)
 │  └─ src/
-│     ├─ server.ts           App + route-registratie
+│     ├─ app.ts              buildApp() — de Fastify-app + route-registratie (geen listen)
+│     ├─ server.ts           Lokale dev-entrypoint: buildApp() + .listen()
 │     ├─ db.ts               Prisma-client (single-user: PROFILE_ID = 1)
 │     ├─ validation.ts       Invoervalidatie profiel
 │     ├─ routes/             profile · budget · entries · foods · weights
 │     └─ services/           openFoodFacts.ts · aiEstimate.ts (Claude, degradeert zonder key)
+├─ netlify/functions/api.ts  Netlify Function: wrapt buildApp() met aws-lambda-fastify
+├─ netlify.toml               Build + redirects (/api/*, /health → de functie)
 └─ web/                      React + Vite PWA
    └─ src/
       ├─ api.ts              Fetch-client naar de backend
@@ -109,7 +120,9 @@ De app werkt out-of-the-box zonder configuratie, behalve de AI-tekstschatting:
 |---|---|---|---|
 | `ANTHROPIC_API_KEY` | backend-omgeving | AI-tekstschatting (Epic 2) en later AI-foto (Epic 3) | — (feature degradeert netjes zonder) |
 | `CALCOUNT_AI_MODEL` | backend-omgeving | AI-model kiezen | `claude-opus-4-8` (bv. `claude-haiku-4-5` voor lagere kosten) |
-| `PORT` | backend-omgeving | Poort backend | `3001` |
+| `PORT` | backend-omgeving (lokaal) | Poort backend bij `npm run dev:api` | `3001` |
+| `DATABASE_URL` | backend-omgeving / Netlify | Postgres-verbinding (pooled, runtime) — alleen nodig als je tegen Supabase draait i.p.v. lokale SQLite | — |
+| `DIRECT_URL` | backend-omgeving / Netlify | Postgres-verbinding (direct, alleen voor `prisma migrate`) | — |
 
 Zie `api/.env.example`. Zet nooit een echte sleutel in de repo.
 
@@ -140,12 +153,12 @@ Deze zijn met de opdrachtgever bevestigd tijdens de bouw:
 
 ## Openstaande punten & aanbevolen volgende stappen
 
-1. **GitHub-push.** De code staat lokaal in een git-repo met één commit op `main` (geen secrets, geen `node_modules`, geen database). `gh` CLI is niet geïnstalleerd; er is wel een SSH-key. Om te pushen: maak een lege repo op GitHub aan en
-   ```bash
-   git remote add origin git@github.com:<jouw-gebruiker>/calcount.git
-   git push -u origin main
-   ```
-   of installeer `gh` en doe `gh auth login` + `gh repo create`.
-2. **Productie-deployment.** Voorstel Netlify + Supabase in [deployment.md](deployment.md) — dit is een backend-herbouw (Fastify/SQLite → Netlify Functions/Supabase-Postgres), nog niet uitgevoerd.
+1. **GitHub-push.** ✅ Gedaan — de repo staat op `github.com/fenderberg/CalCount`.
+2. **Productie-deployment.** Repo-kant klaar voor Netlify + Supabase (zie
+   [deployment.md](deployment.md)): Prisma-schema op `postgresql`, `netlify.toml`, één
+   Netlify Function (`netlify/functions/api.ts`) die de bestaande Fastify-app hergebruikt.
+   Nog te doen: het Supabase-project en de Netlify-site zelf aanmaken, env-variabelen
+   invullen, eerste migratie draaien tegen de echte database, en verifiëren (checklist in
+   deployment.md).
 3. **Epic 3 — AI-fotoherkenning.** Contract staat in [architecture.md §5](architecture.md); vereist een `ANTHROPIC_API_KEY`. De log-flow en het datamodel zijn er al op voorbereid (de `photo`-bron bestaat).
 4. **Optioneel (buiten PRD-scope):** barcodescanner, water/macro's, wearable-koppeling, multi-user + login.

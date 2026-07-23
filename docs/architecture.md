@@ -339,20 +339,20 @@ werkt profielgewicht bij zodat budget meebeweegt; streefgewicht optioneel.
 
 ## 12. Deployment-doel (Netlify + Supabase)
 
-De architectuur hierboven beschrijft de **lokale/dev-opzet** (Fastify + SQLite). Voor productie
-is het voorstel om serverless te gaan: **Netlify** (frontend + Functions) + **Supabase**
-(Postgres). Reden: statische hosts kunnen de Node-backend niet draaien, en serverless vermijdt
-serverbeheer.
+Voor productie draait CalCount serverless: **Netlify** (frontend + één Function) +
+**Supabase** (Postgres). Reden: statische hosts kunnen de Node-backend niet draaien, en
+serverless vermijdt serverbeheer.
 
-Mapping:
+Mapping (zoals daadwerkelijk geïmplementeerd — zie [deployment.md](deployment.md)):
 
 | Lokaal/dev | Productie |
 |---|---|
-| Fastify-server | Netlify Functions (routes → functies), `netlify.toml` redirect `/api/*` |
-| SQLite + Prisma | Supabase Postgres (via `@supabase/supabase-js` of Prisma met Postgres-provider) |
-| `packages/core` | Ongewijzigd hergebruikt |
+| Fastify-server (`api/src/server.ts` roept `buildApp()` + `.listen()` aan) | Eén Netlify Function (`netlify/functions/api.ts`) wrapt dezelfde `buildApp()` met `aws-lambda-fastify`; `netlify.toml` redirect `/api/*` + `/health` |
+| Prisma + Postgres (lokaal én productie — geen SQLite meer) | Ongewijzigd; alleen `DATABASE_URL`/`DIRECT_URL` verschillen per omgeving |
+| `api/src/routes/*`, `api/src/services/*`, `packages/core` | Ongewijzigd hergebruikt — geen herschrijf naar `@supabase/supabase-js` |
 | Frontend | Ongewijzigd; roept nog steeds `/api/*` aan |
 
-Secrets (`ANTHROPIC_API_KEY`, Supabase service-role-key) blijven server-side als env-variabelen;
-de frontend bevat geen sleutels. Dit is **nog niet geïmplementeerd** — het volledige plan met
-schema-SQL, `netlify.toml` en stappen staat in **[deployment.md](deployment.md)**.
+Secrets (`ANTHROPIC_API_KEY`, `DATABASE_URL`, `DIRECT_URL`) blijven server-side als
+env-variabelen; de frontend bevat geen sleutels. De repo-kant is geïmplementeerd; het
+aanmaken van het Supabase-project en de Netlify-site zelf staat nog open — zie
+**[deployment.md](deployment.md)** voor de precieze stappen en verificatie.
