@@ -128,3 +128,5 @@ Claude Sonnet 5 (claude-sonnet-5), via Claude Code
   status gewijzigd naar `parked`. Hostingverwijzingen bijgewerkt van Netlify naar Render.
 - 2026-07-24 — Epic 3 hervat; tekst/foto samengevoegd, correctie en atomaire
   multi-itemopslag gebouwd; status naar `done`.
+- 2026-07-24 — Productiesmoke geslaagd voor tekst-only, foto-only en foto + tekst;
+  alle paden retourneerden volledige voedingswaarden en confidence zonder logopslag.

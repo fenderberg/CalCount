@@ -21,6 +21,8 @@ betrouwbare cross-origin sessie; een HttpOnly-cookie blijft als compatibiliteits
 
 Alle geplande epics zijn functioneel gebouwd. Voor echte AI-analyse moet in de doelomgeving
 een geldige `ANTHROPIC_API_KEY` staan; lokaal is die momenteel niet geconfigureerd.
+De productieflow is op 2026-07-24 geverifieerd met tekst-only, foto-only en de combinatie
+van foto plus aanvullende tekst; alle drie leverden volledige voedingswaarden terug.
 De actuele app-shell volgt het aangeleverde HTML-design: open-ringlogo/PWA-icon,
 tweestaps onboarding, compacte dagheader en 92 px tabbalk met centrale logactie.
 Op 2026-07-24 zijn alle 11 bestaande eetlogregels eenmalig aangevuld met geschatte

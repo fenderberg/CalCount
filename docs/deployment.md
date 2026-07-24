@@ -6,8 +6,12 @@
 > Neon toegepast. Migratie `20260724150000_add_theme_and_epic6` voor profielthema,
 > inzichtsnapshots en coachgebruik is eveneens toegepast. Migratie
 > `20260724160000_add_nutrition_fiber` voor optionele vezelwaarden is eveneens
-> succesvol op Neon toegepast. De code wacht op de
-> eerstvolgende normale deploy.
+> succesvol op Neon toegepast. Frontend en backend volgen automatisch `main` en de
+> actuele gecombineerde AI-/fotoflow staat live.
+
+> **AI/foto-verificatie 2026-07-24:** commit `b77d793` staat live. De beveiligde route
+> `/api/foods/analyze` is in productie succesvol getest met tekst, een echte foto en
+> foto + tekst. De testresultaten zijn niet als eetlog opgeslagen.
 
 ## Voorgeschiedenis
 

@@ -8,3 +8,4 @@ Status: done
 - Gestructureerde output bevat maximaal 20 items met gram, kcal, macro's, vezels en confidence.
 - Tekst fungeert bij een foto als extra context; zonder foto blijft dezelfde standaardflow werken.
 - Foto-bytes worden niet persistent opgeslagen.
+- Productiesmoke met een echte banaanfoto slaagde voor foto-only en foto + contexttekst.
