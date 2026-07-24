@@ -26,13 +26,13 @@ const PHOTO_MODEL = process.env.CALCOUNT_AI_PHOTO_MODEL || MODEL;
 const ESTIMATE_SCHEMA = {
   type: 'object',
   properties: {
-    name: { type: 'string', minLength: 1, description: 'Korte naam van het gerecht/voedingsmiddel' },
-    estimatedGrams: { type: 'number', minimum: 0, description: 'Geschatte portiegrootte in gram' },
-    calories: { type: 'number', minimum: 0, description: 'Geschatte totale calorieën (kcal) voor deze portie' },
-    protein: { type: 'number', minimum: 0 },
-    carbs: { type: 'number', minimum: 0 },
-    fat: { type: 'number', minimum: 0 },
-    fiber: { type: 'number', minimum: 0 },
+    name: { type: 'string', description: 'Korte naam van het gerecht/voedingsmiddel' },
+    estimatedGrams: { type: 'number', description: 'Geschatte portiegrootte in gram' },
+    calories: { type: 'number', description: 'Geschatte totale calorieën (kcal) voor deze portie' },
+    protein: { type: 'number' },
+    carbs: { type: 'number' },
+    fat: { type: 'number' },
+    fiber: { type: 'number' },
     confidence: { type: 'string', enum: ['low', 'medium', 'high'] },
   },
   required: ['name', 'estimatedGrams', 'calories', 'protein', 'carbs', 'fat', 'fiber', 'confidence'],
@@ -44,8 +44,6 @@ const PHOTO_ESTIMATE_SCHEMA = {
   properties: {
     items: {
       type: 'array',
-      minItems: 1,
-      maxItems: 20,
       items: ESTIMATE_SCHEMA,
     },
   },
@@ -58,14 +56,22 @@ export interface AiPhotoEstimate {
 }
 
 function normalizeItems(items: AiFoodEstimate[]): AiFoodEstimate[] {
+  if (!Array.isArray(items) || items.length === 0 || items.length > 20) {
+    throw new Error('AI gaf een ongeldig aantal items terug');
+  }
+  const nonNegative = (value: number, decimals = 1) => {
+    if (!Number.isFinite(value)) throw new Error('AI gaf een ongeldige voedingswaarde terug');
+    const factor = 10 ** decimals;
+    return Math.round(Math.max(0, value) * factor) / factor;
+  };
   return items.map((item) => ({
-    name: item.name,
-    estimatedGrams: Math.round(item.estimatedGrams),
-    calories: Math.round(item.calories),
-    protein: item.protein,
-    carbs: item.carbs,
-    fat: item.fat,
-    fiber: item.fiber,
+    name: item.name.trim() || 'Onbekend item',
+    estimatedGrams: nonNegative(item.estimatedGrams, 0),
+    calories: nonNegative(item.calories, 0),
+    protein: nonNegative(item.protein ?? 0),
+    carbs: nonNegative(item.carbs ?? 0),
+    fat: nonNegative(item.fat ?? 0),
+    fiber: nonNegative(item.fiber ?? 0),
     confidence: item.confidence,
   }));
 }
