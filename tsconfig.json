@@ -10,5 +10,5 @@
     "types": ["node"],
     "noEmit": true
   },
-  "include": ["netlify/functions"]
+  "include": ["netlify/functions", "netlify/types"]
 }
