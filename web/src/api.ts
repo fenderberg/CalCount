@@ -105,6 +105,20 @@ export function estimateFood(description: string): Promise<AiFoodEstimate> {
   });
 }
 
+export interface AiPhotoEstimate {
+  items: AiFoodEstimate[];
+}
+
+export function analyzePhoto(
+  base64Image: string,
+  mediaType: string,
+): Promise<AiPhotoEstimate> {
+  return request<AiPhotoEstimate>('/api/photo/analyze', {
+    method: 'POST',
+    body: JSON.stringify({ image: base64Image, mediaType }),
+  });
+}
+
 export function getRecent(): Promise<FoodEntry[]> {
   return request<FoodEntry[]>('/api/foods/recent');
 }

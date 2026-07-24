@@ -186,7 +186,7 @@ Dit is het hart van de "AI-ondersteunde" belofte. De backend roept de Claude-vis
 | Kostenoptie | `claude-haiku-4-5` | Goedkoopst; nauwkeurigheid valideren op eten |
 | Hoogste kwaliteit | `claude-opus-4-8` | Beste redenering; duurder per foto |
 
-**Aanbeveling:** start met `claude-sonnet-5` en voer een korte proef uit (10–20 echte maaltijdfoto's) om nauwkeurigheid vs. kosten (NFR7) te valideren; val terug op `claude-haiku-4-5` als de nauwkeurigheid voldoende blijkt. Dit is een expliciete open beslissing (PRD §9.2).
+**Aanbeveling (bijgewerkt, PRD v1.1 §9 beslissing 13):** default is nu `claude-haiku-4-5` voor alle AI-functies (foto, inzichten, coach) — vervangt deze eerdere aanbeveling om met `claude-sonnet-5` te starten. Story 3.1 (Epic 3) voert alsnog eerst een korte proef uit (15–20 echte maaltijdfoto's) om de nauwkeurigheid van Haiku 4.5 op foto's te valideren vóór de rest van de epic wordt afgebouwd; val terug op `claude-sonnet-5` (via een aparte `CALCOUNT_AI_PHOTO_MODEL`-override, zie handoff.md/.env.example) als de nauwkeurigheid onvoldoende blijkt. Dit was een expliciete open beslissing (oorspronkelijk PRD §9.2, v1.0) en is bevestigd tijdens de v1.1-hardening.
 
 ### Request (backend → Claude)
 

@@ -1,16 +1,18 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import {
+  analyzePhoto,
   createEntry,
   estimateFood,
   getRecent,
   searchFoods,
+  type AiPhotoEstimate,
   type FoodEntry,
   type FoodRef,
   type NewEntry,
 } from '../api.js';
 
-type Tab = 'recent' | 'search' | 'manual' | 'ai';
+type Tab = 'recent' | 'search' | 'manual' | 'ai' | 'photo';
 
 /** Concept-item dat de gebruiker bevestigt vóór opslaan. */
 interface Draft {
@@ -85,6 +87,7 @@ export function LogSheet({ date, onClose }: Props) {
                 ['search', 'Zoeken'],
                 ['manual', 'Handmatig'],
                 ['ai', 'AI'],
+                ['photo', 'Foto'],
               ] as [Tab, string][]
             ).map(([value, label]) => (
               <button
@@ -108,6 +111,7 @@ export function LogSheet({ date, onClose }: Props) {
             {tab === 'search' && <SearchTab onPick={setDraft} />}
             {tab === 'manual' && <ManualTab onPick={setDraft} />}
             {tab === 'ai' && <AiTab onPick={setDraft} />}
+            {tab === 'photo' && <PhotoTab />}
           </div>
         </>
       )}
@@ -318,6 +322,134 @@ function AiTab({ onPick }: { onPick: (d: Draft) => void }) {
         AI geeft een schatting met marge — je kunt de waarden daarna nog aanpassen.
       </p>
     </form>
+  );
+}
+
+// ---- Foto-herkenning (Epic 3, Story 3.1) ----
+// Compressie is verplicht vóór upload: de Netlify Function-laag heeft een eigen
+// ~6MB-payloadplafond en base64 blaast de bestandsgrootte ~33% op.
+const PHOTO_MAX_DIMENSION = 1024;
+const PHOTO_JPEG_QUALITY = 0.8;
+
+function compressImageFile(
+  file: File,
+): Promise<{ base64: string; mediaType: string }> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      const scale = Math.min(1, PHOTO_MAX_DIMENSION / Math.max(img.width, img.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject(new Error('Canvas niet beschikbaar'));
+        return;
+      }
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL('image/jpeg', PHOTO_JPEG_QUALITY);
+      const [, base64] = dataUrl.split(',');
+      resolve({ base64, mediaType: 'image/jpeg' });
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error('Foto kon niet worden gelezen'));
+    };
+    img.src = objectUrl;
+  });
+}
+
+function PhotoTab() {
+  const mutation = useMutation({
+    mutationFn: async (file: File) => {
+      const { base64, mediaType } = await compressImageFile(file);
+      return analyzePhoto(base64, mediaType);
+    },
+  });
+
+  function onFileChosen(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (file) mutation.mutate(file);
+  }
+
+  const unavailable = (mutation.error as { message?: string })?.message?.includes(
+    'niet geconfigureerd',
+  );
+
+  return (
+    <div className="space-y-4">
+      <label className="block w-full cursor-pointer rounded-2xl bg-green-600 py-4 text-center text-lg font-semibold text-white">
+        Foto maken of kiezen
+        <input
+          type="file"
+          accept="image/*"
+          capture="environment"
+          onChange={onFileChosen}
+          disabled={mutation.isPending}
+          className="hidden"
+        />
+      </label>
+
+      {mutation.isPending && <PhotoSkeleton />}
+
+      {mutation.isError && (
+        <p className="rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-700">
+          {unavailable
+            ? 'AI-fotoherkenning is nog niet beschikbaar (geen API-sleutel ingesteld). Gebruik zolang Zoeken of Handmatig.'
+            : 'Foto herkennen lukte niet. Probeer het opnieuw of voeg handmatig toe.'}
+        </p>
+      )}
+
+      {mutation.isSuccess && <PhotoResultPreview result={mutation.data} />}
+
+      <p className="text-xs text-slate-400">
+        AI geeft een schatting met marge. Corrigeren en opslaan volgt in een volgende stap.
+      </p>
+    </div>
+  );
+}
+
+/** Read-only weergave van de herkende items (Story 3.1 scope — geen correctie/opslaan). */
+function PhotoResultPreview({ result }: { result: AiPhotoEstimate }) {
+  if (result.items.length === 0) {
+    return <Muted>Geen items herkend op deze foto. Probeer Zoeken of Handmatig.</Muted>;
+  }
+  return (
+    <ul className="space-y-2">
+      {result.items.map((item, i) => (
+        <li
+          key={i}
+          className="flex items-center justify-between rounded-2xl border border-slate-200 px-4 py-3"
+        >
+          <span className="font-medium text-slate-800">{item.name}</span>
+          <span className="flex items-center gap-2 text-sm text-slate-500">
+            {item.calories} kcal
+            <span
+              className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                item.confidence === 'high'
+                  ? 'bg-green-100 text-green-700'
+                  : item.confidence === 'medium'
+                    ? 'bg-amber-100 text-amber-700'
+                    : 'bg-orange-100 text-orange-700'
+              }`}
+            >
+              {item.confidence}
+            </span>
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function PhotoSkeleton() {
+  return (
+    <div className="animate-pulse space-y-2" role="status" aria-label="Foto wordt herkend">
+      <div className="h-14 rounded-2xl bg-slate-100" />
+      <div className="h-14 rounded-2xl bg-slate-100" />
+    </div>
   );
 }
 
