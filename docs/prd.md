@@ -5,8 +5,8 @@
 | **Project** | CalCount — AI-ondersteunde calorietracker |
 | **Auteur** | PM (BMAD-methode) |
 | **Datum** | 2026-07-23 |
-| **Versie** | v1.1 |
-| **Status** | Actief — Epics 1, 2, 4, 5 & 6 gebouwd; Epic 3 gedeeltelijk gebouwd en geparkeerd. Zie §11. |
+| **Versie** | v1.2 |
+| **Status** | Actief — Epics 1, 2, 4, 5, 6 & 7 gebouwd; Epic 3 gedeeltelijk gebouwd en geparkeerd. Zie §11. |
 
 ---
 
@@ -42,6 +42,7 @@ Het primaire platform is de smartphone. De eerste versie richt zich op één geb
 | 2026-07-24 | v1.1 implementatie-update | Definitief [design.md](design.md) vastgesteld; Epic 3 geparkeerd; Story 5.1 streak gebouwd en Story 5.2/Epic 6 als volgende prioriteit bevestigd | PM/Dev |
 | 2026-07-24 | v1.1 Epic 5 | Story 5.1 en 5.2 afgerond; permanente awards, oorspronkelijke badgeweergave en aanvullende UX/dark mode gebouwd | Dev |
 | 2026-07-24 | v1.1 Epic 6 | Badgepresentatie versoberd tot tijdelijke popup, dark mode naar Profiel verplaatst en Stories 6.1/6.2 afgerond | Dev |
+| 2026-07-24 | v1.2 Epic 7 | Eenvoudige voedingsbalans toegevoegd: dagelijks compact, wekelijks uitgebreid, met macro's, vezels en expliciete datadekking | PM/Dev |
 
 ---
 
@@ -68,6 +69,7 @@ Het primaire platform is de smartphone. De eerste versie richt zich op één geb
 - **FR17:** De gebruiker kan een vraag stellen aan een interactieve AI-coach over zijn voeding, budget of voortgang, en krijgt een gepersonaliseerd antwoord gebaseerd op zijn eigen gelogde data. De coach onthoudt de gesprekscontext binnen een sessie (vervolgvragen zijn mogelijk zolang het scherm open is), maar slaat het gesprek niet persistent op: bij het opnieuw openen start een nieuw gesprek zonder geheugen aan eerdere sessies.
 - **FR18:** AI-inzichten en AI-coach-antwoorden worden gepresenteerd als suggestie/observatie, nooit als medisch advies — conform NFR8. *(Bevestigd: dit blijft de enige vangrail; de AI wordt niet expliciet gestuurd op de veilige ondergrens van Beslissing 9 — zie §9 beslissing 16.)*
 - **FR19:** De gebruiker kiest lichte of donkere weergave in Profiel; de keuze wordt bij het profiel opgeslagen en na inloggen op alle schermen toegepast.
+- **FR20:** Het systeem toont een globale voedingsbalans voor eiwit, koolhydraten, vet en vezels. Vandaag staan vier compacte balken; Voortgang toont een rollend weekgemiddelde, de onderlinge macroverhouding en maximaal twee rustige aandachtspunten. Richtwaarden worden automatisch afgeleid uit profiel, caloriebudget en afvaltempo. Ontbrekende voedingswaarden worden als onbekend behandeld en via datadekking zichtbaar gemaakt, nooit als nul.
 
 ### Non-Functional Requirements
 
@@ -107,6 +109,7 @@ Een rustige, snelle en aanmoedigende app die één vraag centraal beantwoordt: *
 - Voortgang & gewicht (grafiek + geschiedenis + periodieke AI-inzichten)
 - Tijdelijke badgepopup bij openen van Voortgang
 - AI-coach (vraag/antwoord over voeding en voortgang)
+- Voedingsbalans (compact op Vandaag; uitgebreid als subtab Voeding onder Voortgang)
 - Instellingen (doel bijstellen, profiel, privacy)
 
 ### Accessibility
@@ -165,6 +168,7 @@ Web Responsive, mobile-first (primair smartphone-portret). Desktop is niet in sc
 - **Epic 4 — Voortgang & Bijsturen:** gewicht bijhouden, trends zien en budget automatisch mee laten bewegen.
 - **Epic 5 — Motivatie & Gamification (licht):** streak van opeenvolgende log-dagen en badges/prestaties bij mijlpalen.
 - **Epic 6 — AI-advies & Coach:** periodieke AI-inzichten op het voortgangsscherm en een interactieve AI-coach voor vragen over voeding/voortgang.
+- **Epic 7 — Voedingsbalans:** globale dagelijkse en wekelijkse verdeling van eiwit, koolhydraten, vet en vezels, met eerlijke datadekking.
 
 *Volgorde: elke epic levert een werkende, waardevolle stap op. Na Epic 1 weet de gebruiker zijn budget; na Epic 2 kan hij volledig (handmatig) tracken; Epic 3 voegt het AI-gemak toe; Epic 4 sluit de afval-feedbackloop; Epic 5 en 6 (v1.1) versterken motivatie en inzicht bovenop het werkende fundament.*
 
@@ -396,7 +400,19 @@ Op 2026-07-24 heeft de opdrachtgever de verdere fotoflow geparkeerd ten gunste v
 Epics 5 en 6. Correctie/opslag (Stories 3.2–3.4) en de echte-maaltijdfoto-accuracy-check
 blijven open totdat Epic 3 opnieuw wordt geprioriteerd.
 
-De rest van de v1.0-PRD (Goals, Requirements, UI, Epics 1/2/4) blijft ongewijzigd geldig; v1.1 voegt Epic 5 en Epic 6 toe (§6) zonder bestaande scope te wijzigen.
+De rest van de v1.0-PRD (Goals, Requirements, UI, Epics 1/2/4) blijft ongewijzigd geldig; v1.1 voegde Epic 5 en 6 toe en v1.2 voegt Epic 7 toe.
+
+### Epic 7 — Voedingsbalans
+
+**Doel:** Zonder schijnprecisie laten zien of het gelogde eetpatroon globaal in balans is voor algemene gezondheid en afvallen met behoud van spiermassa.
+
+#### Story 7.1 — Dagelijkse en wekelijkse voedingsbalans
+
+- **AC1:** Vandaag toont vier compacte balken voor eiwit, koolhydraten, vet en vezels zodra er eten is gelogd.
+- **AC2:** Voortgang → Voeding toont over zeven dagen gemiddelden per gelogde dag en de energieverhouding van de drie macro's.
+- **AC3:** De app toont maximaal twee concrete aandachtspunten en geeft pas een inhoudelijk weekoordeel bij minimaal vier gelogde dagen en minimaal 70% bekende voedingswaarden.
+- **AC4:** Richtwaarden volgen automatisch uit het actuele profiel, dagbudget en afvaltempo; het weekoverzicht is indicatief en expliciet geen medisch advies.
+- **AC5:** Open Food Facts, AI, recente items en optionele handmatige invoer bewaren eiwit, koolhydraten, vet en vezels; onbekende waarden blijven onbekend.
 
 ---
 
@@ -410,14 +426,15 @@ De rest van de v1.0-PRD (Goals, Requirements, UI, Epics 1/2/4) blijft ongewijzig
 | 4 — Voortgang & Bijsturen | ✅ Gebouwd & geverifieerd | Gewicht bijhouden, trendgrafiek + streefgewicht, auto-herberekening budget, doel bijstellen |
 | 5 — Motivatie & Gamification (licht) | ✅ Gebouwd | Streak, vaste tijdzone, permanente awards en tijdelijke popup |
 | 6 — AI-advies & Coach | ✅ Gebouwd | Wekelijkse snapshots en sessiegebaseerde coach met daglimiet |
+| 7 — Voedingsbalans | ✅ Gebouwd | Dagbalken, weekgemiddelde, macroverhouding en datadekking |
 
 **Productie:** GitHub Pages, Render en Neon zijn live. De nieuwe database-migraties zijn
-op Neon toegepast; de Epic 5/6-appcode wacht nog op de normale frontend/backenddeploy.
+op Neon toegepast; de actuele design- en Epic 7-appcode wacht nog op de normale frontend/backenddeploy.
 Open productwerk bestaat uit de geparkeerde resterende Epic 3-stories.
 
 Voor de volledige overdracht — hoe lokaal te draaien, repo-structuur, keuzes, openstaande punten — zie **[handoff.md](handoff.md)**.
 
-### Aanbevolen volgorde (v1.1)
+### Aanbevolen volgorde (v1.2)
 1. ~~Open beslissingen §9 bevestigen.~~ ✅ (inclusief v1.1-beslissingen 10–12)
 2. ~~Architectuurdocument actualiseren.~~ ✅
 3. ~~Definitief UX-/designdocument opstellen.~~ ✅ — zie [design.md](design.md).

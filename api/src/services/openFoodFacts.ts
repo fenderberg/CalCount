@@ -7,6 +7,7 @@ export interface FoodRef {
   proteinPer100g?: number;
   carbsPer100g?: number;
   fatPer100g?: number;
+  fiberPer100g?: number;
   source: 'off' | 'manual' | 'ai';
   externalId?: string;
 }
@@ -39,6 +40,7 @@ function mapProduct(p: OffProduct): FoodRef | null {
     proteinPer100g: toNumber(p.nutriments?.['proteins_100g']),
     carbsPer100g: toNumber(p.nutriments?.['carbohydrates_100g']),
     fatPer100g: toNumber(p.nutriments?.['fat_100g']),
+    fiberPer100g: toNumber(p.nutriments?.['fiber_100g']),
     source: 'off',
     externalId: p.code,
   };
@@ -65,6 +67,7 @@ export async function searchFoods(query: string): Promise<FoodRef[]> {
     proteinPer100g: c.proteinPer100g ?? undefined,
     carbsPer100g: c.carbsPer100g ?? undefined,
     fatPer100g: c.fatPer100g ?? undefined,
+    fiberPer100g: c.fiberPer100g ?? undefined,
     source: c.source as FoodRef['source'],
     externalId: c.externalId ?? undefined,
   }));
@@ -114,10 +117,18 @@ async function cacheReferences(refs: FoodRef[]): Promise<void> {
             proteinPer100g: r.proteinPer100g,
             carbsPer100g: r.carbsPer100g,
             fatPer100g: r.fatPer100g,
+            fiberPer100g: r.fiberPer100g,
             source: 'off',
             externalId: r.externalId,
           },
-          update: { name: r.name, caloriesPer100g: r.caloriesPer100g },
+          update: {
+            name: r.name,
+            caloriesPer100g: r.caloriesPer100g,
+            proteinPer100g: r.proteinPer100g,
+            carbsPer100g: r.carbsPer100g,
+            fatPer100g: r.fatPer100g,
+            fiberPer100g: r.fiberPer100g,
+          },
         }),
       ),
   );

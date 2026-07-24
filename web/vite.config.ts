@@ -11,15 +11,20 @@ export default defineConfig(({ command }) => ({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      includeAssets: ['icon.svg'],
       manifest: {
         name: 'CalCount',
         short_name: 'CalCount',
         description: 'AI-ondersteunde calorietracker',
+        lang: 'nl',
         theme_color: '#2a2621',
         background_color: '#f7f1e6',
         display: 'standalone',
         start_url: base,
         scope: base,
+        icons: [
+          { src: `${base}icon.svg`, sizes: 'any', type: 'image/svg+xml', purpose: 'any maskable' },
+        ],
       },
     }),
   ],

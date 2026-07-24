@@ -36,6 +36,7 @@ model FoodEntry {
   protein    Float?
   carbs      Float?
   fat        Float?
+  fiber      Float?
   isEstimate Boolean  @default(false)
   createdAt  DateTime @default(now())
 
@@ -51,6 +52,7 @@ model FoodReference {
   proteinPer100g  Float?
   carbsPer100g    Float?
   fatPer100g      Float?
+  fiberPer100g    Float?
   source          String // 'off' | 'manual' | 'ai'
   externalId      String?  @unique
   lastUsedAt      DateTime @default(now())

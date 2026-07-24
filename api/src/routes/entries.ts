@@ -13,6 +13,7 @@ interface EntryInput {
   protein?: number;
   carbs?: number;
   fat?: number;
+  fiber?: number;
   isEstimate: boolean;
   loggedAt: Date;
 }
@@ -50,6 +51,7 @@ function parseEntryInput(body: unknown, partial = false): Partial<EntryInput> {
   if (b.protein !== undefined) out.protein = optionalNum(b.protein, 'protein');
   if (b.carbs !== undefined) out.carbs = optionalNum(b.carbs, 'carbs');
   if (b.fat !== undefined) out.fat = optionalNum(b.fat, 'fat');
+  if (b.fiber !== undefined) out.fiber = optionalNum(b.fiber, 'fiber');
   if (b.isEstimate !== undefined) out.isEstimate = Boolean(b.isEstimate);
   if (b.loggedAt !== undefined) {
     const d = new Date(String(b.loggedAt));
@@ -96,6 +98,7 @@ export async function entryRoutes(app: FastifyInstance) {
         protein: input.protein,
         carbs: input.carbs,
         fat: input.fat,
+        fiber: input.fiber,
         isEstimate: input.isEstimate ?? false,
         loggedAt: input.loggedAt ?? new Date(),
       },

@@ -1,23 +1,31 @@
 import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
-import { getBudget, getEntries, getStreak, type StoredProfile } from '../api.js';
+import { useEffect, useState } from 'react';
+import { getBudget, getEntries, getNutrition, getStreak, type StoredProfile } from '../api.js';
 import { BudgetRing } from '../components/BudgetRing.js';
 import { EntryList } from '../components/EntryList.js';
+import { NutritionBars } from '../components/NutritionBalance.js';
 import { formatDate, shiftDay, todayStr } from '../dates.js';
 import { LogSheet } from './LogSheet.js';
 
 interface Props {
   profile: StoredProfile;
-  onEditProfile: () => void;
+  openLogRequest: boolean;
+  onLogRequestHandled: () => void;
 }
 
-export function Home({ profile, onEditProfile }: Props) {
+export function Home({ profile, openLogRequest, onLogRequestHandled }: Props) {
   const timeZone =
     profile.timeZone ?? Intl.DateTimeFormat().resolvedOptions().timeZone ?? 'UTC';
   const today = todayStr(timeZone);
   const [date, setDate] = useState(today);
   const [showLog, setShowLog] = useState(false);
   const isToday = date === today;
+
+  useEffect(() => {
+    if (!openLogRequest) return;
+    setShowLog(true);
+    onLogRequestHandled();
+  }, [openLogRequest, onLogRequestHandled]);
 
   const budget = useQuery({
     queryKey: ['budget', date],
@@ -31,43 +39,39 @@ export function Home({ profile, onEditProfile }: Props) {
     queryKey: ['streak', timeZone],
     queryFn: () => getStreak(timeZone),
   });
+  const nutrition = useQuery({
+    queryKey: ['nutrition', date],
+    queryFn: () => getNutrition(date),
+  });
 
   return (
-    <div className="mx-auto min-h-dvh max-w-md px-5 pb-28 pt-8">
+    <div className="mx-auto min-h-dvh max-w-md px-5 pb-32 pt-5">
       <header className="flex items-center justify-between">
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
           <button
             onClick={() => setDate(shiftDay(date, -1))}
             aria-label="Vorige dag"
-            className="flex h-tap-min w-tap-min items-center justify-center rounded-full text-xl text-text-muted active:text-ink"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-muted text-xl text-text-muted active:text-ink"
           >
             ‹
           </button>
-          <div className="min-w-[92px] text-center">
-            <p className="text-sm font-semibold text-ink">{formatDate(date, timeZone)}</p>
+          <div className="min-w-[88px] text-center">
+            <p className="text-base font-bold text-ink">{formatDate(date, timeZone)}</p>
+            <p className="text-xs font-medium text-text-muted">{shortDate(date)}</p>
           </div>
           <button
             onClick={() => setDate(shiftDay(date, 1))}
             disabled={isToday}
             aria-label="Volgende dag"
-            className="flex h-tap-min w-tap-min items-center justify-center rounded-full text-xl text-text-muted active:text-ink disabled:opacity-30"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-muted text-xl text-text-muted active:text-ink disabled:opacity-30"
           >
             ›
           </button>
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={onEditProfile}
-            className="rounded-lg bg-surface-muted px-4 py-2 text-sm font-semibold text-text-subtle active:bg-surface-track"
-          >
-            Profiel
-          </button>
-        </div>
+        {streak.data && <StreakPill streak={streak.data.currentStreak} />}
       </header>
 
-      {streak.data && <StreakCard streak={streak.data.currentStreak} loggedToday={streak.data.loggedToday} />}
-
-      <main className="mt-8 flex flex-col items-center">
+      <main className="mt-5 flex flex-col items-center">
         {budget.isLoading && <p className="text-text-muted">Budget berekenen...</p>}
         {budget.isError && (
           <p className="text-center text-budget-over">
@@ -81,13 +85,9 @@ export function Home({ profile, onEditProfile }: Props) {
               budget={budget.data.budget}
               status={budget.data.status}
             />
-
-            <div className="mt-6 grid w-full grid-cols-2 gap-3">
-              <Stat label="Budget" value={`${budget.data.budget} kcal`} />
-              <Stat
-                label="Gegeten"
-                value={`${Math.round(budget.data.consumed)} kcal`}
-              />
+            <div className="mt-3 flex gap-6 text-[13px] font-semibold text-text-muted">
+              <span><strong className="font-extrabold text-budget-under">{Math.round(budget.data.consumed)}</strong> gegeten</span>
+              <span><strong className="font-extrabold text-ink">{budget.data.budget}</strong> budget</span>
             </div>
 
             {budget.data.status === 'over' && (
@@ -104,50 +104,50 @@ export function Home({ profile, onEditProfile }: Props) {
           </>
         )}
 
-        <section className="mt-8 w-full">
-          <h2 className="mb-1 text-xs font-semibold text-text-muted">Gelogd</h2>
+        {nutrition.data && nutrition.data.totals.calories > 0 && (
+          <section className="mt-7 w-full rounded-xl bg-surface-card px-4 py-4">
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div>
+                <h2 className="text-[15px] font-bold text-ink">Voedingsbalans</h2>
+                <p className="mt-0.5 text-xs text-text-faint">Globale richting voor deze dag</p>
+              </div>
+              <span className="rounded-full bg-nutrition-surface px-2.5 py-1 text-[11px] font-bold text-nutrition">{nutrition.data.coverage}% bekend</span>
+            </div>
+            <NutritionBars summary={nutrition.data} compact />
+            {nutrition.data.coverage < 70 && (
+              <p className="mt-3 text-xs leading-5 text-text-faint">Nog niet alles heeft voedingswaarden. Zie dit als een grove indicatie.</p>
+            )}
+          </section>
+        )}
+
+        <section className="mt-7 w-full">
+          <div className="mb-2 flex items-center justify-between px-1">
+            <h2 className="text-[15px] font-bold text-ink">{isToday ? 'Vandaag gegeten' : 'Gegeten'}</h2>
+            <span className="text-[13px] font-semibold text-text-muted">{entries.data?.length ?? 0} items</span>
+          </div>
           {entries.data && <EntryList entries={entries.data} />}
         </section>
       </main>
-
-      {/* Prominente logknop (Story 2.1 / UI Design Goals). DESIGN.md: components.fab. */}
-      <button
-        onClick={() => setShowLog(true)}
-        aria-label="Eten toevoegen"
-        className="fixed bottom-20 left-1/2 z-40 flex h-[62px] w-[62px] -translate-x-1/2 items-center justify-center rounded-full bg-ink text-3xl text-surface-page shadow-fab active:opacity-90"
-      >
-        +
-      </button>
 
       {showLog && <LogSheet date={date} onClose={() => setShowLog(false)} />}
     </div>
   );
 }
 
-function StreakCard({ streak, loggedToday }: { streak: number; loggedToday: boolean }) {
-  let message = 'Elke logdag telt — begin vandaag aan een nieuwe reeks.';
-  if (streak > 0 && loggedToday) {
-    message = `${streak} ${streak === 1 ? 'dag' : 'dagen'} op rij`;
-  } else if (streak > 0) {
-    message = `${streak} ${streak === 1 ? 'dag' : 'dagen'} op rij · log vandaag om door te gaan`;
-  }
-
+function StreakPill({ streak }: { streak: number }) {
   return (
-    <div className="mt-5 flex items-center gap-3 rounded-lg border border-reward/20 bg-reward-surface px-4 py-3 text-reward-text-strong">
-      <span className="flex h-9 w-9 items-center justify-center rounded-full bg-reward text-lg text-white" aria-hidden="true">↗</span>
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-wide text-reward-text">Logreeks</p>
-        <p className="text-sm font-semibold">{message}</p>
-      </div>
+    <div className="flex items-center gap-2 rounded-full bg-reward-surface px-3 py-2 text-reward-text-strong" aria-label={`${streak} dagen logreeks`}>
+      <span className="h-4 w-4 rounded-full bg-reward" aria-hidden="true" />
+      <span className="text-sm font-bold">{streak}</span>
     </div>
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-md border border-ink/[0.07] bg-surface-card px-4 py-3 text-center">
-      <p className="text-xs font-medium text-text-muted">{label}</p>
-      <p className="text-lg font-bold text-ink">{value}</p>
-    </div>
-  );
+function shortDate(date: string) {
+  const [year, month, day] = date.split('-').map(Number);
+  return new Date(year, month - 1, day).toLocaleDateString('nl-NL', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+  });
 }

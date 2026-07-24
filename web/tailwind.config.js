@@ -33,6 +33,8 @@ export default {
         'reward-surface': 'rgb(var(--reward-surface) / <alpha-value>)',
         'reward-text': 'rgb(var(--reward-text) / <alpha-value>)',
         'reward-text-strong': 'rgb(var(--reward-text-strong) / <alpha-value>)',
+        nutrition: 'rgb(var(--nutrition) / <alpha-value>)',
+        'nutrition-surface': 'rgb(var(--nutrition-surface) / <alpha-value>)',
         'confidence-high': 'rgb(var(--confidence-high) / <alpha-value>)',
         'confidence-high-surface': 'rgb(var(--confidence-high-surface) / <alpha-value>)',
         'confidence-medium': 'rgb(var(--confidence-medium) / <alpha-value>)',
@@ -52,6 +54,7 @@ export default {
         // Warm-toned (rgba(42,38,33,…), nooit puur zwart) i.p.v. Tailwind's grijze default.
         ambient: '0 8px 24px rgba(42, 38, 33, 0.10)',
         fab: '0 10px 22px rgba(42, 38, 33, 0.28)',
+        logo: '0 12px 24px -8px rgba(47, 143, 94, 0.55), inset 0 1px 0 rgba(255,255,255,0.3)',
       },
       spacing: {
         'tap-min': '48px',

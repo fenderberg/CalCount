@@ -13,6 +13,7 @@ export function App() {
   // 'edit' forceert het profielformulier (bijv. via "profiel wijzigen").
   const [mode, setMode] = useState<'auto' | 'edit'>('auto');
   const [tab, setTab] = useState<Tab>('home');
+  const [openLogOnHome, setOpenLogOnHome] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: profile, isLoading, isError, error } = useQuery({
@@ -64,11 +65,22 @@ export function App() {
   return (
     <>
       {tab === 'home' ? (
-        <Home profile={profile} onEditProfile={() => setMode('edit')} />
+        <Home
+          profile={profile}
+          openLogRequest={openLogOnHome}
+          onLogRequestHandled={() => setOpenLogOnHome(false)}
+        />
       ) : (
         <Progress profile={profile} onEditProfile={() => setMode('edit')} />
       )}
-      <TabBar tab={tab} onChange={setTab} />
+      <TabBar
+        tab={tab}
+        onChange={setTab}
+        onAdd={() => {
+          setTab('home');
+          setOpenLogOnHome(true);
+        }}
+      />
     </>
   );
 }

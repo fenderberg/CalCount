@@ -23,6 +23,11 @@ interface Draft {
   grams?: number;
   caloriesPer100g?: number; // aanwezig => grammen bepalen de calorieën
   calories: number;
+  protein?: number;
+  carbs?: number;
+  fat?: number;
+  fiber?: number;
+  nutrientsPer100g?: { protein?: number; carbs?: number; fat?: number; fiber?: number };
   isEstimate?: boolean;
 }
 
@@ -44,6 +49,7 @@ export function LogSheet({ date, onClose }: Props) {
       queryClient.invalidateQueries({ queryKey: ['recent'] });
       queryClient.invalidateQueries({ queryKey: ['streak'] });
       queryClient.invalidateQueries({ queryKey: ['badges'] });
+      queryClient.invalidateQueries({ queryKey: ['nutrition'] });
       onClose();
     },
   });
@@ -55,6 +61,10 @@ export function LogSheet({ date, onClose }: Props) {
       calories: d.calories,
       grams: d.grams,
       isEstimate: d.isEstimate,
+      protein: d.protein,
+      carbs: d.carbs,
+      fat: d.fat,
+      fiber: d.fiber,
       // Bucket het item in de bekeken kalenderdag (middag-UTC), zodat het
       // ongeacht tijdzone op precies die dag verschijnt.
       loggedAt: loggedAtForDay(date),
@@ -126,6 +136,10 @@ function recentToDraft(e: FoodEntry): Draft {
     grams: e.grams ?? undefined,
     calories: e.calories,
     isEstimate: e.isEstimate,
+    protein: e.protein ?? undefined,
+    carbs: e.carbs ?? undefined,
+    fat: e.fat ?? undefined,
+    fiber: e.fiber ?? undefined,
   };
 }
 
@@ -210,6 +224,16 @@ function refToDraft(ref: FoodRef): Draft {
     grams: 100,
     caloriesPer100g: ref.caloriesPer100g,
     calories: ref.caloriesPer100g,
+    protein: ref.proteinPer100g,
+    carbs: ref.carbsPer100g,
+    fat: ref.fatPer100g,
+    fiber: ref.fiberPer100g,
+    nutrientsPer100g: {
+      protein: ref.proteinPer100g,
+      carbs: ref.carbsPer100g,
+      fat: ref.fatPer100g,
+      fiber: ref.fiberPer100g,
+    },
   };
 }
 
@@ -218,6 +242,10 @@ function ManualTab({ onPick }: { onPick: (d: Draft) => void }) {
   const [name, setName] = useState('');
   const [calories, setCalories] = useState('');
   const [grams, setGrams] = useState('');
+  const [protein, setProtein] = useState('');
+  const [carbs, setCarbs] = useState('');
+  const [fat, setFat] = useState('');
+  const [fiber, setFiber] = useState('');
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -226,6 +254,10 @@ function ManualTab({ onPick }: { onPick: (d: Draft) => void }) {
       source: 'manual',
       calories: Math.round(Number(calories)),
       grams: grams ? Number(grams) : undefined,
+      protein: protein ? Number(protein) : undefined,
+      carbs: carbs ? Number(carbs) : undefined,
+      fat: fat ? Number(fat) : undefined,
+      fiber: fiber ? Number(fiber) : undefined,
     });
   }
 
@@ -241,6 +273,24 @@ function ManualTab({ onPick }: { onPick: (d: Draft) => void }) {
           className={fieldClass}
         />
       </LabeledInput>
+      <details className="rounded-lg bg-surface-muted px-4 py-3">
+        <summary className="cursor-pointer text-sm font-semibold text-text-subtle">Voedingswaarden toevoegen <span className="font-normal text-text-faint">(optioneel)</span></summary>
+        <fieldset className="mt-3">
+          <legend className="sr-only">Voedingswaarden in gram</legend>
+          <div className="grid grid-cols-2 gap-2">
+            {([
+              ['Eiwit', protein, setProtein],
+              ['Koolhydraten', carbs, setCarbs],
+              ['Vet', fat, setFat],
+              ['Vezels', fiber, setFiber],
+            ] as const).map(([label, value, setter]) => (
+              <input key={label} type="number" inputMode="decimal" min="0" step="0.1" value={value}
+                onChange={(event) => setter(event.target.value)} placeholder={label} aria-label={`${label} in gram`} className={fieldClass} />
+            ))}
+          </div>
+          <p className="mt-2 text-xs text-text-faint">Een grove schatting is genoeg voor je balans.</p>
+        </fieldset>
+      </details>
       <LabeledInput label="Calorieën (kcal)">
         <input
           type="number"
@@ -284,6 +334,10 @@ function AiTab({ onPick }: { onPick: (d: Draft) => void }) {
           source: 'ai',
           grams: est.estimatedGrams,
           calories: est.calories,
+          protein: est.protein,
+          carbs: est.carbs,
+          fat: est.fat,
+          fiber: est.fiber,
           isEstimate: true,
         }),
     });
@@ -486,11 +540,20 @@ function PortionEditor({
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
+    const factor = draft.nutrientsPer100g && grams ? Number(grams) / 100 : 1;
+    const nutrient = (key: 'protein' | 'carbs' | 'fat' | 'fiber') => {
+      const value = draft.nutrientsPer100g?.[key] ?? draft[key];
+      return value === undefined ? undefined : Math.round(value * factor * 10) / 10;
+    };
     onSave({
       ...draft,
       name: name.trim(),
       grams: grams ? Number(grams) : undefined,
       calories: Math.round(Number(calories)),
+      protein: nutrient('protein'),
+      carbs: nutrient('carbs'),
+      fat: nutrient('fat'),
+      fiber: nutrient('fiber'),
     });
   }
 

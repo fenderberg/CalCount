@@ -1,6 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
 import { login } from '../api.js';
+import { AppLogo } from '../components/AppLogo.js';
 
 export function Login({ onSuccess }: { onSuccess: () => void }) {
   const [username, setUsername] = useState('');
@@ -18,8 +19,9 @@ export function Login({ onSuccess }: { onSuccess: () => void }) {
 
   return (
     <div className="relative mx-auto flex min-h-dvh max-w-md flex-col justify-center bg-surface-page px-6">
-      <h1 className="text-3xl font-extrabold tracking-[-0.02em] text-ink">CalCount</h1>
-      <p className="mt-1 text-text-muted">Log in om verder te gaan.</p>
+      <AppLogo size={64} wordmark />
+      <h1 className="mt-8 text-3xl font-extrabold tracking-[-0.02em] text-ink">Welkom terug</h1>
+      <p className="mt-1 text-text-muted">Log in om je dagboek te openen.</p>
 
       <form onSubmit={submit} className="mt-6 space-y-4">
         <label className="block">

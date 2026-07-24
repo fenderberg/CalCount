@@ -7,6 +7,7 @@ import {
   getBudget,
   getCoachUsage,
   getInsights,
+  getWeeklyNutrition,
   getWeights,
   type CoachMessage,
   type StoredProfile,
@@ -14,9 +15,10 @@ import {
 } from '../api.js';
 import { BadgeNotifications } from '../components/BadgeNotifications.js';
 import { WeightChart } from '../components/WeightChart.js';
+import { MacroRatioBar, NutritionBars } from '../components/NutritionBalance.js';
 import { todayStr } from '../dates.js';
 
-type ProgressView = 'weight' | 'insights' | 'coach';
+type ProgressView = 'weight' | 'nutrition' | 'insights' | 'coach';
 
 export function Progress({
   profile,
@@ -28,30 +30,75 @@ export function Progress({
   const [view, setView] = useState<ProgressView>('weight');
   const timeZone = profile.timeZone ?? Intl.DateTimeFormat().resolvedOptions().timeZone ?? 'UTC';
   return (
-    <div className="mx-auto min-h-dvh max-w-md px-5 pb-28 pt-8">
+    <div className="mx-auto min-h-dvh max-w-md px-6 pb-32 pt-6">
       <BadgeNotifications timeZone={timeZone} />
       <header className="flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold tracking-[-0.02em] text-ink">Voortgang</h1>
+        <h1 className="text-[27px] font-extrabold tracking-[-0.02em] text-ink">Voortgang</h1>
         <div className="flex items-center gap-2">
           <button
             onClick={onEditProfile}
-            className="rounded-lg bg-surface-muted px-4 py-2 text-sm font-semibold text-text-subtle active:bg-surface-track"
+            aria-label="Profiel en instellingen"
+            className="flex h-11 w-11 items-center justify-center rounded-lg bg-confidence-high-surface text-base font-extrabold text-confidence-high active:bg-surface-track"
           >
-            Profiel
+            J
           </button>
         </div>
       </header>
 
-      <nav className="mt-5 grid grid-cols-3 gap-1 rounded-full bg-surface-muted p-1" aria-label="Voortgangsonderdelen">
+      <nav className="mt-4 flex gap-2 overflow-x-auto" aria-label="Voortgangsonderdelen">
         <ViewButton active={view === 'weight'} onClick={() => setView('weight')}>Gewicht</ViewButton>
+        <ViewButton active={view === 'nutrition'} onClick={() => setView('nutrition')}>Voeding</ViewButton>
         <ViewButton active={view === 'insights'} onClick={() => setView('insights')}>Inzichten</ViewButton>
         <ViewButton active={view === 'coach'} onClick={() => setView('coach')}>AI-coach</ViewButton>
       </nav>
 
       {view === 'weight' && <WeightPanel profile={profile} />}
+      {view === 'nutrition' && <NutritionPanel timeZone={timeZone} />}
       {view === 'insights' && <InsightsPanel timeZone={timeZone} />}
       {view === 'coach' && <CoachPanel timeZone={timeZone} />}
     </div>
+  );
+}
+
+function NutritionPanel({ timeZone }: { timeZone: string }) {
+  const end = todayStr(timeZone);
+  const nutrition = useQuery({
+    queryKey: ['nutrition-week', end],
+    queryFn: () => getWeeklyNutrition(end),
+  });
+  if (nutrition.isLoading) return <PanelMessage>Je voedingspatroon wordt berekend…</PanelMessage>;
+  if (nutrition.isError) return <PanelMessage tone="error">{(nutrition.error as Error).message}</PanelMessage>;
+  const data = nutrition.data;
+  if (!data || data.loggedDays === 0) return <PanelMessage>Log eerst een paar dagen eten om je voedingspatroon te zien.</PanelMessage>;
+  return (
+    <section className="mt-6 space-y-4">
+      <div className="rounded-xl bg-surface-card px-5 py-5">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">Afgelopen 7 dagen</p>
+            <h2 className="mt-1 text-lg font-extrabold text-ink">Gemiddeld per gelogde dag</h2>
+          </div>
+          <span className="rounded-full bg-nutrition-surface px-2.5 py-1 text-[11px] font-bold text-nutrition">{data.coverage}% bekend</span>
+        </div>
+        <div className="mt-5"><NutritionBars summary={data} /></div>
+      </div>
+
+      {data.macroRatio && (
+        <div className="rounded-xl bg-surface-card px-5 py-5">
+          <h2 className="mb-3 text-sm font-extrabold text-ink">Onderlinge verhouding</h2>
+          <MacroRatioBar summary={data} />
+          <p className="mt-3 text-xs leading-5 text-text-faint">Verdeling van energie uit de drie macro’s. Vezels staan apart omdat ze vooral iets zeggen over productkeuze.</p>
+        </div>
+      )}
+
+      <div className="rounded-xl bg-nutrition-surface px-5 py-5">
+        <h2 className="text-sm font-extrabold text-ink">{data.assessment.title}</h2>
+        <ul className="mt-3 space-y-2 text-sm leading-6 text-text-subtle">
+          {data.assessment.points.map((point) => <li key={point} className="flex gap-2"><span className="text-nutrition">●</span><span>{point}</span></li>)}
+        </ul>
+        <p className="mt-4 text-xs text-text-faint">Gebaseerd op {data.loggedDays} gelogde dagen · globale richtwaarden, geen medisch advies.</p>
+      </div>
+    </section>
   );
 }
 
@@ -68,8 +115,8 @@ function ViewButton({
     <button
       onClick={onClick}
       aria-current={active ? 'page' : undefined}
-      className={`min-h-tap-min rounded-full px-2 text-xs font-semibold ${
-        active ? 'bg-surface-card text-ink shadow-sm' : 'text-text-muted'
+      className={`min-h-[36px] shrink-0 rounded-full px-4 text-[13px] font-semibold ${
+        active ? 'bg-ink font-bold text-surface-page' : 'bg-surface-muted text-text-subtle'
       }`}
     >
       {children}
@@ -121,9 +168,9 @@ function WeightPanel({ profile }: { profile: StoredProfile }) {
 
   return (
     <>
-      <div className="mt-6 rounded-md border border-ink/[0.07] bg-surface-card px-5 py-4">
-        <p className="text-sm font-medium text-text-muted">Huidig gewicht</p>
-        <p className="text-3xl font-extrabold text-ink">{current} kg</p>
+      <div className="mt-6">
+        <p className="text-[13px] font-semibold text-text-muted">Huidig gewicht</p>
+        <p className="text-[34px] font-extrabold tracking-[-0.02em] text-ink">{current} <span className="text-base text-text-muted">kg</span></p>
         {target !== undefined && (
           <p className="mt-1 text-sm text-text-muted">
             Streefgewicht {target} kg
@@ -187,11 +234,14 @@ function InsightsPanel({ timeZone }: { timeZone: string }) {
   const item = insight.data?.insight;
   if (!item) return <PanelMessage>Er is nog geen inzicht beschikbaar.</PanelMessage>;
   return (
-    <section className="mt-6 rounded-lg border border-ink/[0.07] bg-surface-card px-5 py-5">
+    <section className="mt-6 rounded-xl bg-reward-surface px-5 py-5">
       <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
         {item.windowStart} t/m {item.windowEnd}
       </p>
-      <h2 className="mt-2 text-xl font-bold text-ink">Je wekelijkse inzicht</h2>
+      <div className="mt-2 flex items-center gap-2">
+        <span className="flex h-[22px] min-w-[22px] items-center justify-center rounded-[7px] bg-reward px-1 text-[10px] font-extrabold text-white">AI</span>
+        <h2 className="text-sm font-extrabold text-reward-text-strong">Je wekelijkse inzicht</h2>
+      </div>
       <p className="mt-3 whitespace-pre-line text-sm leading-6 text-text-subtle">{item.content}</p>
       <p className="mt-4 text-xs leading-5 text-text-faint">AI-observatie en suggestie, geen medisch advies.</p>
     </section>

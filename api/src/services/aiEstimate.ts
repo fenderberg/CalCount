@@ -9,6 +9,7 @@ export interface AiFoodEstimate {
   protein?: number;
   carbs?: number;
   fat?: number;
+  fiber?: number;
   confidence: 'low' | 'medium' | 'high';
 }
 
@@ -31,6 +32,7 @@ const ESTIMATE_SCHEMA = {
     protein: { type: 'number' },
     carbs: { type: 'number' },
     fat: { type: 'number' },
+    fiber: { type: 'number' },
     confidence: { type: 'string', enum: ['low', 'medium', 'high'] },
   },
   required: ['name', 'estimatedGrams', 'calories', 'confidence'],
@@ -90,6 +92,7 @@ export async function estimateFromText(description: string): Promise<AiFoodEstim
     protein: parsed.protein,
     carbs: parsed.carbs,
     fat: parsed.fat,
+    fiber: parsed.fiber,
     confidence: parsed.confidence,
   };
 }
@@ -159,6 +162,7 @@ export async function estimateFromPhoto(
       protein: item.protein,
       carbs: item.carbs,
       fat: item.fat,
+      fiber: item.fiber,
       confidence: item.confidence,
     })),
   };

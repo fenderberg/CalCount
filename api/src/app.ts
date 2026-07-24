@@ -6,6 +6,7 @@ import { badgeRoutes } from './routes/badges.js';
 import { budgetRoutes } from './routes/budget.js';
 import { entryRoutes } from './routes/entries.js';
 import { foodRoutes } from './routes/foods.js';
+import { nutritionRoutes } from './routes/nutrition.js';
 import { photoRoutes } from './routes/photo.js';
 import { profileRoutes } from './routes/profile.js';
 import { streakRoutes } from './routes/streak.js';
@@ -54,6 +55,7 @@ export async function buildApp() {
   await app.register(budgetRoutes);
   await app.register(foodRoutes);
   await app.register(entryRoutes);
+  await app.register(nutritionRoutes);
   await app.register(weightRoutes);
   await app.register(photoRoutes);
   await app.register(streakRoutes);

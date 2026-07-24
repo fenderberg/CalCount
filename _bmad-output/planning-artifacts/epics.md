@@ -9,7 +9,7 @@ inputDocuments: ["docs/prd.md", "docs/architecture.md"]
 
 This document provides the epic and story breakdown for CalCount. Current priority
 (updated 2026-07-24): Epics 1, 2, 4 and 5 are complete; Epic 3 is partially implemented
-but parked; Epics 5 and 6 are complete. Canonical current documentation lives in `docs/`.
+but parked; Epics 5, 6 and 7 are complete. Canonical current documentation lives in `docs/`.
 
 ## Requirements Inventory
 
@@ -34,6 +34,7 @@ FR16: Het systeem genereert wekelijks automatische AI-inzichten op basis van eet
 FR17: De gebruiker kan een vraag stellen aan een interactieve AI-coach; sessie-geheugen, geen persistente opslag.
 FR18: AI-inzichten en AI-coach-antwoorden worden gepresenteerd als suggestie/observatie, nooit als medisch advies.
 FR19: De light/dark-keuze staat als instelling in het profiel en geldt na inloggen voor alle schermen.
+FR20: Het systeem toont een globale dagelijkse en wekelijkse balans van eiwit, koolhydraten, vet en vezels, met automatische richtwaarden, datadekking en maximaal twee aandachtspunten.
 
 ### NonFunctional Requirements
 
@@ -86,6 +87,7 @@ FR16: Epic 6 - Periodieke AI-inzichten
 FR17: Epic 6 - Interactieve AI-coach
 FR18: Epic 6 - AI-advies als suggestie, geen medisch advies
 FR19: Profiel - opgeslagen light/dark-instelling
+FR20: Epic 7 - dagelijkse en wekelijkse voedingsbalans
 
 ## Epic List
 
@@ -126,6 +128,11 @@ Gebruiker blijft gemotiveerd via een streak-teller en badges bij mijlpalen, zond
 Gebruiker krijgt periodieke AI-inzichten en kan een interactieve AI-coach vragen stellen over voeding/voortgang.
 **FRs covered:** FR16, FR17, FR18
 **Status:** ✅ Gebouwd — wekelijkse snapshots en sessiegebaseerde coach met daglimiet.
+
+### Epic 7: Voedingsbalans
+Gebruiker ziet globaal of het gelogde eetpatroon in balans is, zonder exacte tracking te vereisen.
+**FRs covered:** FR20
+**Status:** ✅ Gebouwd — vier dagbalken, weekgemiddelde, macroverhouding, datadekking en rustig oordeel.
 
 **Dependency-opmerking:** Epic 6.1 gebruikt dezelfde vaste tijdzone/daggrenzen als Story
 5.1. Die basis is nu gebouwd. Epic 3 blijft functioneel onafhankelijk en geparkeerd.
@@ -257,3 +264,21 @@ zodat ik het later opnieuw kan loggen zonder nieuwe foto.
 
 **Status:** ✅ Gebouwd — Stories 6.1–6.2 zijn afgerond; de tijdzonebasis uit Story 5.1
 wordt voor vensters en daglimiet gebruikt.
+
+---
+
+## Epic 7: Voedingsbalans
+
+**Status:** ✅ Gebouwd — Story 7.1 afgerond op 2026-07-24.
+
+### Story 7.1: Dagelijkse en wekelijkse voedingsbalans
+
+Als gebruiker wil ik globaal zien hoe eiwit, koolhydraten, vet en vezels verdeeld zijn,
+zodat ik weet waar ik op kan letten zonder alles exact te hoeven meten.
+
+**Acceptance Criteria:**
+
+- Vandaag toont vier compacte balken met automatische richtwaarden.
+- Voortgang → Voeding toont een zevendaags gemiddelde en macroverhouding.
+- Een inhoudelijk oordeel vereist vier gelogde dagen en 70% bekende voedingswaarden.
+- Onbekende waarden blijven onbekend en het oordeel bevat maximaal twee aandachtspunten.

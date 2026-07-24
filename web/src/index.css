@@ -21,6 +21,8 @@
   --reward-surface: 239 237 249;
   --reward-text: 93 89 179;
   --reward-text-strong: 75 71 156;
+  --nutrition: 62 122 139;
+  --nutrition-surface: 229 239 241;
   --confidence-high: 47 143 94;
   --confidence-high-surface: 238 244 239;
   --confidence-medium: 176 109 26;
@@ -48,6 +50,8 @@
   --reward-surface: 49 47 74;
   --reward-text: 197 193 255;
   --reward-text-strong: 226 223 255;
+  --nutrition: 105 174 193;
+  --nutrition-surface: 31 53 59;
   --confidence-high: 75 181 132;
   --confidence-high-surface: 31 57 43;
   --confidence-medium: 230 164 78;

@@ -70,14 +70,16 @@ kalenderdag- en streakgrenzen.
 ### FoodEntry
 
 Een gelogd voedingsitem met naam, bron (`search`, `manual`, `ai`, `recent`, `photo`),
-grammen, calorieën, optionele macro's, `isEstimate`, `loggedAt` en `createdAt`.
+grammen, calorieën, optionele `protein`, `carbs`, `fat` en `fiber`, `isEstimate`,
+`loggedAt` en `createdAt`. `null` betekent onbekend en telt bij de voedingsbalans nooit als nul.
 
 `loggedAt` fungeert als kalenderdagtag. Nieuwe invoer gebruikt middag UTC van de gekozen
 `YYYY-MM-DD`-dag, zodat frontend en backend dezelfde dagbucket hanteren.
 
 ### FoodReference
 
-Cache/referentie voor voedingsmiddelen met kcal en optionele macro's per 100 gram. De
+Cache/referentie voor voedingsmiddelen met kcal en optionele `proteinPer100g`,
+`carbsPer100g`, `fatPer100g` en `fiberPer100g`. De
 actuele Recent-flow wordt rechtstreeks uit `FoodEntry` opgebouwd; deze tabel blijft
 beschikbaar voor productcache en verdere offlineverbetering.
 
@@ -105,7 +107,14 @@ Pure functies in `packages/core` verzorgen:
 - dagbudget met veilige ondergrens;
 - dagstatus `under`, `near` of `over`;
 - kalenderdagverschuiving en UTC-daggrenzen;
-- huidige/langste streak en totaal unieke logdagen.
+- huidige/langste streak en totaal unieke logdagen;
+- voedingsrichtwaarden, totalen, macro-energieverhouding en caloriegewogen datadekking.
+
+Voedingsrichtwaarden zijn bewust brede vuistregels: eiwit is bij afvallen het maximum
+van 0,83 g/kg huidig gewicht en 1,2 g/kg referentiegewicht (begrensd op 25 energie%),
+koolhydraten 40–70 energie%, vet 20–40 energie% en vezels minimaal 25 g (vrouw) of
+30 g (man), zo nodig energiegerelateerd hoger. Het weekgemiddelde extrapoleert alleen
+volledig bekende items; de dekkingspill blijft daarom noodzakelijk bij interpretatie.
 
 Een streak telt unieke opeenvolgende kalenderdagen met minstens één item. Als vandaag
 nog leeg is, blijft een gisteren eindigende reeks gedurende de huidige dag actief. Na
@@ -126,6 +135,8 @@ via `Authorization: Bearer …` of de bestaande sessiecookie.
 | `GET` | `/api/budget?date=YYYY-MM-DD` | TDEE, budget, gegeten en resterend |
 | `GET`, `POST` | `/api/entries` | Dagitems ophalen / item toevoegen |
 | `PATCH`, `DELETE` | `/api/entries/:id` | Item wijzigen / verwijderen |
+| `GET` | `/api/nutrition?date=` | Dagtotalen, automatische richtwaarden en datadekking |
+| `GET` | `/api/nutrition/week?end=` | Zevendaags gemiddelde, macroverhouding en rustig oordeel |
 | `GET` | `/api/foods/search?q=` | Open Food Facts + cache zoeken |
 | `POST` | `/api/foods/estimate` | AI-tekstschatting |
 | `GET` | `/api/foods/recent` | Recente unieke items |

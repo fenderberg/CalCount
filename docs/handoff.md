@@ -17,8 +17,14 @@ betrouwbare cross-origin sessie; een HttpOnly-cookie blijft als compatibiliteits
 | 4 — Voortgang | ✅ | Gewicht CRUD, trendgrafiek, streefgewicht en automatische budgetherberekening |
 | 5 — Motivatie | ✅ | Streak, vaste tijdzone, permanente awards en tijdelijke badgepopup bij openen Voortgang |
 | 6 — AI-advies | ✅ | Wekelijkse inzichtsnapshots en sessiegebaseerde AI-coach met daglimiet |
+| 7 — Voedingsbalans | ✅ | Vier dagbalken, weekgemiddelde, macroverhouding, datadekking en rustig advies |
 
-Epic 6 is afgerond. Epic 3 blijft geparkeerd totdat fotofunctionaliteit opnieuw wordt geprioriteerd.
+Epic 6 en 7 zijn afgerond. Epic 3 blijft geparkeerd totdat fotofunctionaliteit opnieuw wordt geprioriteerd.
+De actuele app-shell volgt het aangeleverde HTML-design: open-ringlogo/PWA-icon,
+tweestaps onboarding, compacte dagheader en 92 px tabbalk met centrale logactie.
+Op 2026-07-24 zijn alle 11 bestaande eetlogregels eenmalig aangevuld met geschatte
+eiwit-, koolhydraat-, vet- en vezelwaarden. De historische datadekking is daardoor 100%;
+de waarden blijven bewust als schatting gemarkeerd.
 
 ## Canonieke documentatie
 
@@ -81,7 +87,7 @@ CalCount/
 │     └─ services/           auth, Open Food Facts en Anthropic
 ├─ web/src/
 │  ├─ screens/               Login, Onboarding, Home, LogSheet, Progress
-│  └─ components/            BudgetRing, EntryList, WeightChart, TabBar
+│  └─ components/            AppLogo, BudgetRing, EntryList, WeightChart, TabBar
 ├─ .github/workflows/        GitHub Pages deployment
 └─ render.yaml               Render Web Service
 ```
@@ -89,8 +95,8 @@ CalCount/
 ## Datamodel
 
 - **Profile** — één profiel (`id = 1`) met lichaamsgegevens, doel, tijdzone en thema.
-- **FoodEntry** — gelogde voeding met bron, kcal, gram, macro's, schattingsvlag en dag.
-- **FoodReference** — lokale voedingsreferentie/cache.
+- **FoodEntry** — gelogde voeding met bron, kcal, gram, eiwit/koolhydraten/vet/vezels, schattingsvlag en dag; voedingswaarden mogen onbekend zijn.
+- **FoodReference** — lokale voedingsreferentie/cache met optionele voedingswaarden per 100 gram.
 - **WeightEntry** — gewichtsmeting; synchroniseert het actuele profielgewicht.
 - **BadgeAward** — permanent toegekende badge met earn-datum.
 - **AiInsight** — onveranderlijke wekelijkse AI-momentopname met bronvenster.
@@ -109,6 +115,7 @@ items direct mee en herberekent verwijderen automatisch.
 | `GET`, `PUT` | `/api/profile` | Profiel ophalen/vervangen |
 | `GET` | `/api/budget?date=` | Dagbudget |
 | `GET`, `POST`, `PATCH`, `DELETE` | `/api/entries` / `:id` | Eetlog CRUD |
+| `GET` | `/api/nutrition` en `/api/nutrition/week` | Dag- en weekbalans met richtwaarden en datadekking |
 | `GET` | `/api/foods/search?q=` | Product zoeken |
 | `POST` | `/api/foods/estimate` | AI-tekstschatting |
 | `GET` | `/api/foods/recent` | Recente items |
@@ -149,7 +156,8 @@ items direct mee en herberekent verwijderen automatisch.
 
 ## Volgende stappen
 
-1. De huidige Epic 5/6-code committen en naar GitHub Pages/Render deployen.
-2. Productiecontrole uitvoeren voor profielthema, tijdelijke badgepopup, inzichten en coachlimiet.
-3. Handmatige mobiele visuele controle uitvoeren voor swipe, popup, coachflow en dark mode.
-4. Epic 3 alleen hervatten na een nieuw expliciet prioriteitsbesluit.
+1. De huidige design- en Epic 7-code committen en naar GitHub Pages/Render deployen.
+2. Productiecontrole uitvoeren voor de dagelijkse voedingsbalken, weekweergave en datadekking.
+3. Handmatige mobiele visuele controle uitvoeren voor de volledige vernieuwde app-shell en dark mode.
+4. Meer items met voedingswaarden loggen; het weekoordeel wordt inhoudelijk vanaf vier dagen en 70% dekking.
+5. Epic 3 alleen hervatten na een nieuw expliciet prioriteitsbesluit.

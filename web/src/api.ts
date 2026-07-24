@@ -1,4 +1,4 @@
-import type { DaySummary, UserProfile } from '@calcount/core';
+import type { DaySummary, NutritionSummary, UserProfile } from '@calcount/core';
 
 /** Profiel zoals opgeslagen door de backend (met updatedAt). */
 export interface StoredProfile extends UserProfile {
@@ -140,6 +140,7 @@ export interface FoodRef {
   proteinPer100g?: number;
   carbsPer100g?: number;
   fatPer100g?: number;
+  fiberPer100g?: number;
   source: 'off' | 'manual' | 'ai';
   externalId?: string;
 }
@@ -154,6 +155,7 @@ export interface FoodEntry {
   protein: number | null;
   carbs: number | null;
   fat: number | null;
+  fiber: number | null;
   isEstimate: boolean;
 }
 
@@ -164,6 +166,7 @@ export interface AiFoodEstimate {
   protein?: number;
   carbs?: number;
   fat?: number;
+  fiber?: number;
   confidence: 'low' | 'medium' | 'high';
 }
 
@@ -175,6 +178,7 @@ export interface NewEntry {
   protein?: number;
   carbs?: number;
   fat?: number;
+  fiber?: number;
   isEstimate?: boolean;
   loggedAt?: string;
 }
@@ -275,6 +279,26 @@ export async function login(username: string, password: string): Promise<{ ok: t
   });
   localStorage.setItem(AUTH_TOKEN_KEY, response.token);
   return { ok: true };
+}
+
+export type DailyNutrition = NutritionSummary & { date: string };
+export type WeeklyNutrition = NutritionSummary & {
+  start: string;
+  end: string;
+  loggedDays: number;
+  assessment: {
+    status: 'ready' | 'insufficient';
+    title: string;
+    points: string[];
+  };
+};
+
+export function getNutrition(date: string): Promise<DailyNutrition> {
+  return request<DailyNutrition>(`/api/nutrition?date=${date}`);
+}
+
+export function getWeeklyNutrition(end: string): Promise<WeeklyNutrition> {
+  return request<WeeklyNutrition>(`/api/nutrition/week?end=${end}`);
 }
 
 export async function logout(): Promise<void> {

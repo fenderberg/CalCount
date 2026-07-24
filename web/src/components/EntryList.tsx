@@ -97,12 +97,15 @@ function SwipeableEntryRow({
           open ? '-translate-x-36' : 'translate-x-0'
         }`}
       >
+        <span className={`flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-sm text-xs font-bold ${entry.isEstimate ? 'bg-confidence-medium-surface text-confidence-medium' : 'bg-confidence-high-surface text-confidence-high'}`} aria-hidden="true">
+          {entry.name.trim().charAt(0).toUpperCase()}
+        </span>
         <button
           type="button"
           onClick={() => (open ? setOpen(false) : onEdit())}
           className="min-w-0 flex-1 text-left"
         >
-          <p className="truncate font-medium text-ink">
+          <p className="truncate text-[15px] font-bold text-ink">
             {entry.name}
             {entry.isEstimate && <span className="ml-1.5 text-xs text-confidence-medium">~schatting</span>}
           </p>
@@ -111,7 +114,7 @@ function SwipeableEntryRow({
             {entry.grams ? ` · ${entry.grams} g` : ''}
           </p>
         </button>
-        <span className="shrink-0 font-semibold text-ink">{entry.calories} kcal</span>
+        <span className={`shrink-0 text-[15px] font-bold text-ink ${entry.isEstimate ? 'border-b border-dotted border-text-faint' : ''}`}>{entry.isEstimate ? '~' : ''}{entry.calories}</span>
         <button
           type="button"
           onClick={() => setOpen((value) => !value)}

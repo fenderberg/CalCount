@@ -18,6 +18,14 @@ AI-ondersteunde calorietracker (mobile-first PWA).
 - **Epic 4 — Voortgang & Bijsturen: ✅ gebouwd en geverifieerd.**
 - **Epic 5 — Motivatie & Gamification: ✅ gebouwd** (streak, permanente badge-awards en tijdelijke meldingen).
 - **Epic 6 — AI-advies & Coach: ✅ gebouwd** (wekelijkse snapshots en sessiegebaseerde coach).
+- **Epic 7 — Voedingsbalans: ✅ gebouwd** (dagelijkse macro-/vezelbalken en een rustig weekpatroon met datadekking).
+
+### Epic 7
+
+- Vandaag toont een compacte indicatie voor eiwit, koolhydraten, vet en vezels.
+- Voortgang → Voeding toont het gemiddelde per gelogde dag, de macroverhouding en maximaal twee aandachtspunten.
+- Richtwaarden volgen automatisch uit profiel, caloriebudget en afvaltempo; ontbrekende voedingswaarden tellen nooit als nul.
+- Open Food Facts, AI-schattingen, recente items en optionele handmatige invoer leveren de voedingsdata.
 
 ### Epic 5
 
@@ -27,6 +35,7 @@ AI-ondersteunde calorietracker (mobile-first PWA).
 - Permanente badges voor 3/7/30 dagen streak, 30 logdagen en positieve gewichtstrend.
 - Nieuwe badges worden alleen kort getoond wanneer Voortgang wordt geopend.
 - Voortgang-subtabs, swipeacties, budget-fit-preview en een profielgebonden light/dark-thema.
+- Open-ringapp-logo, tweestaps onboarding en centrale log-FAB volgens het definitieve HTML-design.
 
 ### Epic 6
 
@@ -90,7 +99,7 @@ npm run dev:web        # PWA op http://localhost:5173 (proxyt /api naar de backe
 ## Tests
 
 ```bash
-npm test               # 32 unit tests van de domeinlogica (packages/core)
+npm test               # 35 unit tests van de domeinlogica (packages/core)
 npm run docs:check     # documentatiedrift, links, routes, migraties en BMAD-status
 ```
 

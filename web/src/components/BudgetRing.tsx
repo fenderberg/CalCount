@@ -13,18 +13,12 @@ const RING_STROKE: Record<DayStatus, string> = {
   over: 'stroke-budget-over',
 };
 
-const TEXT_COLOR: Record<DayStatus, string> = {
-  under: 'text-budget-under',
-  near: 'text-budget-near',
-  over: 'text-budget-over',
-};
-
 /**
  * Het "een-getal-hoofdscherm": een ring die de gegeten fractie visualiseert,
  * met het resterende budget groot in het midden (Story 1.4 / UI Design Goals).
  */
 export function BudgetRing({ remaining, budget, status }: Props) {
-  const size = 240;
+  const size = 230;
   const stroke = 18;
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -56,15 +50,15 @@ export function BudgetRing({ remaining, budget, status }: Props) {
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-sm font-medium text-text-muted">
-          {remaining >= 0 ? 'Nog te gaan' : 'Over budget'}
+        <span className="text-[13px] font-bold uppercase tracking-[0.06em] text-text-muted">
+          {remaining >= 0 ? 'Nog over' : 'Over budget'}
         </span>
         <span
-          className={`text-6xl font-extrabold tracking-[-0.03em] ${TEXT_COLOR[status]}`}
+          className={`text-[60px] font-extrabold leading-none tracking-[-0.03em] ${status === 'over' ? 'text-budget-over' : 'text-ink'}`}
         >
           {Math.abs(remaining)}
         </span>
-        <span className="text-sm font-medium text-text-muted">kcal</span>
+        <span className="text-sm font-semibold text-text-muted">van {budget} kcal</span>
       </div>
     </div>
   );

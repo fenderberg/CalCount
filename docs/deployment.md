@@ -4,7 +4,9 @@
 > `https://calcount-api.onrender.com/health` met `{"status":"ok"}`. De Epic 5-migraties
 > voor `Profile.timeZone` en `BadgeAward` zijn op 2026-07-24 handmatig en succesvol op
 > Neon toegepast. Migratie `20260724150000_add_theme_and_epic6` voor profielthema,
-> inzichtsnapshots en coachgebruik is eveneens toegepast. De code wacht op de
+> inzichtsnapshots en coachgebruik is eveneens toegepast. Migratie
+> `20260724160000_add_nutrition_fiber` voor optionele vezelwaarden is eveneens
+> succesvol op Neon toegepast. De code wacht op de
 > eerstvolgende normale deploy.
 
 ## Voorgeschiedenis
@@ -156,4 +158,4 @@ dat een acceptabele afweging tegen de gratis prijs.
    groen is.
 6. Render-dashboard → Logs → controleer dat `npm run db:deploy -w api` zonder fouten
    liep. Bij de eerstvolgende deploy hoort migratie
-   `20260724150000_add_theme_and_epic6` al toegepast te zijn; `No pending migrations` is verwacht.
+   `20260724160000_add_nutrition_fiber` al toegepast te zijn; `No pending migrations` is verwacht.
