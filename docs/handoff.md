@@ -124,6 +124,9 @@ De app werkt out-of-the-box zonder configuratie, behalve de AI-tekstschatting:
 | `PORT` | backend-omgeving (lokaal) | Poort backend bij `npm run dev:api` | `3001` |
 | `DATABASE_URL` | backend-omgeving / Render | Postgres-verbinding (pooled, runtime) naar Neon | — |
 | `DIRECT_URL` | backend-omgeving / Render | Postgres-verbinding (direct, alleen voor `prisma migrate`) | — |
+| `AUTH_USERNAME` / `AUTH_PASSWORD` | backend-omgeving | Login-toegangsgate (verplicht — zonder deze is elke API-aanroep 401) | — |
+| `AUTH_SECRET` | backend-omgeving | Ondertekent de sessie-cookie (HMAC) | — |
+| `COOKIE_SECURE` | backend-omgeving | `true` in productie (SameSite=None; Secure, want frontend/backend zijn andere origins) | leeg/`false` lokaal |
 
 Zie `api/.env.example`. Zet nooit een echte sleutel in de repo.
 

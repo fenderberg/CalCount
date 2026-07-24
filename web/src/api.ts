@@ -16,6 +16,9 @@ const API_BASE = import.meta.env.VITE_API_URL ?? '';
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
     headers: { 'Content-Type': 'application/json' },
+    // Nodig voor de sessie-cookie: frontend/backend zijn andere origins
+    // (GitHub Pages / Render) zodra VITE_API_URL absoluut is.
+    credentials: 'include',
     ...init,
   });
   if (!res.ok) {
@@ -150,7 +153,7 @@ export function updateEntry(
 }
 
 export async function deleteEntry(id: string): Promise<void> {
-  await fetch(`${API_BASE}/api/entries/${id}`, { method: 'DELETE' });
+  await fetch(`${API_BASE}/api/entries/${id}`, { method: 'DELETE', credentials: 'include' });
 }
 
 // ---- Epic 4: gewicht & voortgang ----
@@ -183,5 +186,18 @@ export function updateWeight(
 }
 
 export async function deleteWeight(id: string): Promise<void> {
-  await fetch(`${API_BASE}/api/weights/${id}`, { method: 'DELETE' });
+  await fetch(`${API_BASE}/api/weights/${id}`, { method: 'DELETE', credentials: 'include' });
+}
+
+// ---- Login ----
+
+export function login(username: string, password: string): Promise<{ ok: true }> {
+  return request<{ ok: true }>('/api/login', {
+    method: 'POST',
+    body: JSON.stringify({ username, password }),
+  });
+}
+
+export async function logout(): Promise<void> {
+  await request('/api/logout', { method: 'POST' });
 }

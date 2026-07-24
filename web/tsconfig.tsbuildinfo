@@ -1,1 +1,0 @@
-{"root":["./src/app.tsx","./src/api.ts","./src/main.tsx","./src/components/budgetring.tsx","./src/components/entrylist.tsx","./src/components/tabbar.tsx","./src/components/weightchart.tsx","./src/screens/home.tsx","./src/screens/logsheet.tsx","./src/screens/onboarding.tsx","./src/screens/progress.tsx","./vite.config.ts"],"version":"5.9.3"}

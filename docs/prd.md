@@ -356,7 +356,7 @@ Als gebruiker wil ik een vraag kunnen stellen over mijn voeding of voortgang, zo
 Deze punten zijn bevestigd tijdens de bouw (waren eerder open aannames):
 
 1. **Platform:** PWA (web, mobile-first, installeerbaar). ✅ bevestigd.
-2. **Scope v1:** single-user, geen login/accounts. ✅ bevestigd.
+2. **Scope v1:** single-user, geen login/accounts. ✅ bevestigd. *Herzien bij publieke deployment: sinds de app publiek bereikbaar is (GitHub Pages/Render), is er een lichte toegangsgate toegevoegd — één vaste gebruikersnaam/wachtwoord (env-variabelen, geen users-tabel) die voorkomt dat willekeurige bezoekers van de URL kunnen loggen/wijzigen. Dit is geen multi-user-systeem (nog steeds precies één profiel/dataset) — puur een slot op de voordeur, zie [deployment.md](deployment.md).*
 3. **Tech stack:** React + TypeScript + Vite (PWA) + Tailwind; Fastify + TypeScript; Postgres via Prisma (Neon in productie, zie hieronder). ✅ bevestigd. *Productie-hostingdoel: GitHub Pages (frontend) + Render (backend) + Neon (database) — zie [architecture.md](architecture.md) §12 en [deployment.md](deployment.md).*
 4. **Voedingsbronnen:** combinatie van **Open Food Facts** (zoeken), **handmatig** (altijd terugval, offline), **AI-tekstschatting** (Claude) en later **AI-fotoschatting**. ✅ bevestigd. Handmatig is altijd de fallback.
 5. **AI-model:** Claude, server-side via proxy; instelbaar via env (`CALCOUNT_AI_MODEL`). ~~Default `claude-opus-4-8`~~ — **vervangen door beslissing 13 (v1.1): default is nu `claude-haiku-4-5`.** Nauwkeurigheid/kosten nog te valideren bij Epic 3.

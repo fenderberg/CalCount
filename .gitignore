@@ -1,6 +1,7 @@
 node_modules/
 dist/
 *.log
+*.tsbuildinfo
 
 # Env files (secrets) — never commit real values, only .env.example files.
 .env

@@ -107,6 +107,12 @@ Neon Postgres  ◀── DATABASE_URL (pooled, runtime) / DIRECT_URL (direct, mi
    | `ANTHROPIC_API_KEY` | je Claude-sleutel |
    | `CALCOUNT_AI_MODEL` | optioneel, bv. `claude-haiku-4-5` |
    | `CALCOUNT_AI_PHOTO_MODEL` | optioneel, valt terug op `CALCOUNT_AI_MODEL` |
+   | `AUTH_USERNAME` | login-gebruikersnaam (simpele single-user toegangscontrole) |
+   | `AUTH_PASSWORD` | login-wachtwoord |
+   | `AUTH_SECRET` | willekeurige lange string die de sessie-cookie ondertekent — genereer met `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
+
+   `COOKIE_SECURE=true` staat al vast in `render.yaml` (nodig omdat frontend en
+   backend verschillende origins zijn — zie architecture.md).
 
 4. Deploy. Render geeft de service-URL (verwacht: `https://calcount-api.onrender.com`,
    tenzij die naam al bezet is — dan krijg je een variant met een suffix).
@@ -130,14 +136,16 @@ dat een acceptabele afweging tegen de gratis prijs.
 
 ## Verificatie na deploy
 
-1. `curl https://calcount-api.onrender.com/health` → `{"status":"ok"}`.
-2. `curl https://calcount-api.onrender.com/api/profile` → je bestaande profiel (de Neon-
-   database heeft al echte data uit de vorige Netlify-periode).
-3. Open `https://fenderberg.github.io/CalCount/` in de browser → moet het bestaande
-   profiel tonen (bevestigt dat `VITE_API_URL` goed staat en CORS werkt — Fastify's
-   `@fastify/cors` staat al op `origin: true`, dus geen wijziging nodig).
+1. `curl https://calcount-api.onrender.com/health` → `{"status":"ok"}` (blijft open, geen login nodig).
+2. `curl https://calcount-api.onrender.com/api/profile` → `401 {"error":"Niet ingelogd"}`
+   (bevestigt dat de login-guard actief is — alles behalve `/health` en `/api/login`
+   vereist nu een sessie).
+3. Open `https://fenderberg.github.io/CalCount/` in de browser → moet het inlogscherm
+   tonen; log in met `AUTH_USERNAME`/`AUTH_PASSWORD` → moet daarna je bestaande profiel
+   tonen (bevestigt dat `VITE_API_URL`, CORS met `credentials: true`, en de
+   cross-origin sessie-cookie allemaal kloppen).
 4. Log een item via Zoeken en via AI-tekstschatting om end-to-end te bevestigen dat de
-   browser (ander domein dan de backend) succesvol met Render praat.
+   browser (ander domein dan de backend) succesvol met Render praat, met sessie intact.
 5. GitHub → Actions-tab → controleer dat de "Deploy frontend to GitHub Pages"-workflow
    groen is.
 6. Render-dashboard → Logs → controleer dat `npm run db:deploy -w api` zonder fouten
