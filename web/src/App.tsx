@@ -26,7 +26,7 @@ export function App() {
       <CenterMessage>
         Kan de server niet bereiken.
         <br />
-        <span className="text-sm text-slate-500">{(error as Error).message}</span>
+        <span className="text-sm text-text-muted">{(error as Error).message}</span>
       </CenterMessage>
     );
   }
@@ -55,7 +55,7 @@ export function App() {
 
 function CenterMessage({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-dvh items-center justify-center p-6 text-center text-slate-700">
+    <div className="flex min-h-dvh items-center justify-center bg-surface-page p-6 text-center text-ink">
       <div>{children}</div>
     </div>
   );

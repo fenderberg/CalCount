@@ -63,10 +63,10 @@ export function LogSheet({ date, onClose }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-white">
-      <header className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
-        <h2 className="text-lg font-bold text-slate-900">Eten toevoegen</h2>
-        <button onClick={onClose} className="text-slate-500" aria-label="Sluiten">
+    <div className="fixed inset-0 z-50 flex flex-col bg-surface-page">
+      <header className="flex items-center justify-between border-b border-ink/[0.07] px-5 py-4">
+        <h2 className="text-lg font-bold text-ink">Eten toevoegen</h2>
+        <button onClick={onClose} className="text-text-muted" aria-label="Sluiten">
           Sluiten
         </button>
       </header>
@@ -93,10 +93,10 @@ export function LogSheet({ date, onClose }: Props) {
               <button
                 key={value}
                 onClick={() => setTab(value)}
-                className={`flex-1 rounded-xl py-2.5 text-sm font-medium ${
+                className={`flex-1 rounded-full py-2.5 text-sm font-semibold ${
                   tab === value
-                    ? 'bg-green-600 text-white'
-                    : 'bg-slate-100 text-slate-600'
+                    ? 'bg-ink text-surface-page'
+                    : 'bg-surface-muted text-text-subtle'
                 }`}
               >
                 {label}
@@ -141,10 +141,10 @@ function RecentTab({ onLog }: { onLog: (e: FoodEntry) => void }) {
         <li key={e.id}>
           <button
             onClick={() => onLog(e)}
-            className="flex w-full items-center justify-between rounded-2xl border border-slate-200 px-4 py-3 text-left active:bg-slate-50"
+            className="flex w-full items-center justify-between rounded-md border border-ink/[0.07] bg-surface-card px-4 py-3 text-left active:bg-surface-muted"
           >
-            <span className="font-medium text-slate-800">{e.name}</span>
-            <span className="text-sm text-slate-500">
+            <span className="font-medium text-ink">{e.name}</span>
+            <span className="text-sm text-text-muted">
               {e.calories} kcal{e.grams ? ` · ${e.grams} g` : ''}
             </span>
           </button>
@@ -177,7 +177,7 @@ function SearchTab({ onPick }: { onPick: (d: Draft) => void }) {
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Zoek een product (bv. banaan)"
-        className="w-full rounded-2xl border border-slate-200 px-4 py-3.5 text-lg outline-none focus:border-green-500"
+        className={fieldClass}
       />
       {debounced.length >= 2 && isFetching && <Muted>Zoeken...</Muted>}
       {isError && <Muted>Zoeken lukte niet. Probeer handmatig invoeren.</Muted>}
@@ -186,10 +186,10 @@ function SearchTab({ onPick }: { onPick: (d: Draft) => void }) {
           <li key={ref.externalId ?? ref.id ?? ref.name}>
             <button
               onClick={() => onPick(refToDraft(ref))}
-              className="flex w-full items-center justify-between rounded-2xl border border-slate-200 px-4 py-3 text-left active:bg-slate-50"
+              className="flex w-full items-center justify-between rounded-md border border-ink/[0.07] bg-surface-card px-4 py-3 text-left active:bg-surface-muted"
             >
-              <span className="font-medium text-slate-800">{ref.name}</span>
-              <span className="text-sm text-slate-500">
+              <span className="font-medium text-ink">{ref.name}</span>
+              <span className="text-sm text-text-muted">
                 {ref.caloriesPer100g} kcal/100g
               </span>
             </button>
@@ -262,7 +262,7 @@ function ManualTab({ onPick }: { onPick: (d: Draft) => void }) {
       <button
         type="submit"
         disabled={!valid}
-        className="w-full rounded-2xl bg-green-600 py-4 text-lg font-semibold text-white disabled:opacity-40"
+        className="w-full rounded-lg bg-ink py-4 text-lg font-semibold text-surface-page disabled:opacity-40"
       >
         Verder
       </button>
@@ -307,18 +307,18 @@ function AiTab({ onPick }: { onPick: (d: Draft) => void }) {
       <button
         type="submit"
         disabled={description.trim().length < 2 || mutation.isPending}
-        className="w-full rounded-2xl bg-green-600 py-4 text-lg font-semibold text-white disabled:opacity-40"
+        className="w-full rounded-lg bg-ink py-4 text-lg font-semibold text-surface-page disabled:opacity-40"
       >
         {mutation.isPending ? 'Schatten...' : 'Laat AI schatten'}
       </button>
       {mutation.isError && (
-        <p className="rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-700">
+        <p className="rounded-lg bg-budget-near/10 px-4 py-3 text-sm font-medium text-budget-near">
           {unavailable
             ? 'AI-schatting is nog niet beschikbaar (geen API-sleutel ingesteld). Gebruik zolang Zoeken of Handmatig.'
             : 'Schatten lukte niet. Probeer het opnieuw of voeg handmatig toe.'}
         </p>
       )}
-      <p className="text-xs text-slate-400">
+      <p className="text-xs text-text-faint">
         AI geeft een schatting met marge — je kunt de waarden daarna nog aanpassen.
       </p>
     </form>
@@ -381,7 +381,7 @@ function PhotoTab() {
 
   return (
     <div className="space-y-4">
-      <label className="block w-full cursor-pointer rounded-2xl bg-green-600 py-4 text-center text-lg font-semibold text-white">
+      <label className="block w-full cursor-pointer rounded-lg bg-ink py-4 text-center text-lg font-semibold text-surface-page">
         Foto maken of kiezen
         <input
           type="file"
@@ -396,7 +396,7 @@ function PhotoTab() {
       {mutation.isPending && <PhotoSkeleton />}
 
       {mutation.isError && (
-        <p className="rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-700">
+        <p className="rounded-lg bg-budget-near/10 px-4 py-3 text-sm font-medium text-budget-near">
           {unavailable
             ? 'AI-fotoherkenning is nog niet beschikbaar (geen API-sleutel ingesteld). Gebruik zolang Zoeken of Handmatig.'
             : 'Foto herkennen lukte niet. Probeer het opnieuw of voeg handmatig toe.'}
@@ -405,7 +405,7 @@ function PhotoTab() {
 
       {mutation.isSuccess && <PhotoResultPreview result={mutation.data} />}
 
-      <p className="text-xs text-slate-400">
+      <p className="text-xs text-text-faint">
         AI geeft een schatting met marge. Corrigeren en opslaan volgt in een volgende stap.
       </p>
     </div>
@@ -422,18 +422,18 @@ function PhotoResultPreview({ result }: { result: AiPhotoEstimate }) {
       {result.items.map((item, i) => (
         <li
           key={i}
-          className="flex items-center justify-between rounded-2xl border border-slate-200 px-4 py-3"
+          className="flex items-center justify-between rounded-md border border-ink/[0.07] bg-surface-card px-4 py-3"
         >
-          <span className="font-medium text-slate-800">{item.name}</span>
-          <span className="flex items-center gap-2 text-sm text-slate-500">
+          <span className="font-medium text-ink">{item.name}</span>
+          <span className="flex items-center gap-2 text-sm text-text-muted">
             {item.calories} kcal
             <span
               className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                 item.confidence === 'high'
-                  ? 'bg-green-100 text-green-700'
+                  ? 'bg-confidence-high-surface text-confidence-high'
                   : item.confidence === 'medium'
-                    ? 'bg-amber-100 text-amber-700'
-                    : 'bg-orange-100 text-orange-700'
+                    ? 'bg-confidence-medium-surface text-confidence-medium'
+                    : 'bg-confidence-low-surface text-confidence-low'
               }`}
             >
               {item.confidence}
@@ -448,8 +448,8 @@ function PhotoResultPreview({ result }: { result: AiPhotoEstimate }) {
 function PhotoSkeleton() {
   return (
     <div className="animate-pulse space-y-2" role="status" aria-label="Foto wordt herkend">
-      <div className="h-14 rounded-2xl bg-slate-100" />
-      <div className="h-14 rounded-2xl bg-slate-100" />
+      <div className="h-14 rounded-md bg-surface-muted" />
+      <div className="h-14 rounded-md bg-surface-muted" />
     </div>
   );
 }
@@ -492,7 +492,7 @@ function PortionEditor({
   return (
     <form onSubmit={submit} className="flex flex-1 flex-col overflow-y-auto px-5 py-4">
       {draft.isEstimate && (
-        <p className="mb-4 rounded-2xl bg-blue-50 px-4 py-3 text-sm text-blue-700">
+        <p className="mb-4 rounded-lg bg-surface-muted px-4 py-3 text-sm text-text-subtle">
           AI-schatting — controleer en pas aan waar nodig.
         </p>
       )}
@@ -526,11 +526,11 @@ function PortionEditor({
             value={calories}
             onChange={(e) => setCalories(e.target.value)}
             readOnly={perGramLocked}
-            className={`${fieldClass} ${perGramLocked ? 'bg-slate-50 text-slate-500' : ''}`}
+            className={`${fieldClass} ${perGramLocked ? 'bg-surface-muted text-text-muted' : ''}`}
           />
         </LabeledInput>
         {perGramLocked && (
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-text-faint">
             {draft.caloriesPer100g} kcal per 100 g — pas het gewicht aan om de
             calorieën te wijzigen.
           </p>
@@ -541,11 +541,11 @@ function PortionEditor({
         <button
           type="submit"
           disabled={saving || name.trim() === '' || Number(calories) <= 0}
-          className="w-full rounded-2xl bg-green-600 py-4 text-lg font-semibold text-white disabled:opacity-40"
+          className="w-full rounded-lg bg-ink py-4 text-lg font-semibold text-surface-page disabled:opacity-40"
         >
           {saving ? 'Opslaan...' : 'Toevoegen'}
         </button>
-        <button type="button" onClick={onCancel} className="w-full py-3 text-slate-500">
+        <button type="button" onClick={onCancel} className="w-full py-3 text-text-muted">
           Terug
         </button>
       </div>
@@ -555,7 +555,7 @@ function PortionEditor({
 
 // ---- kleine helpers ----
 const fieldClass =
-  'w-full rounded-2xl border border-slate-200 px-4 py-3.5 text-lg outline-none focus:border-green-500';
+  'w-full rounded-lg border border-ink/10 bg-surface-card px-4 py-3.5 text-lg text-ink outline-none focus:border-budget-under';
 
 function LabeledInput({
   label,
@@ -566,12 +566,12 @@ function LabeledInput({
 }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-sm font-medium text-slate-700">{label}</span>
+      <span className="mb-1.5 block text-xs font-semibold text-text-subtle">{label}</span>
       {children}
     </label>
   );
 }
 
 function Muted({ children }: { children: React.ReactNode }) {
-  return <p className="mt-4 text-center text-sm text-slate-400">{children}</p>;
+  return <p className="mt-4 text-center text-sm text-text-faint">{children}</p>;
 }

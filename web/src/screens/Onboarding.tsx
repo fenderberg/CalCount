@@ -64,11 +64,11 @@ export function Onboarding({ existing, onDone, onCancel }: Props) {
   }
 
   return (
-    <div className="mx-auto min-h-dvh max-w-md px-5 py-8">
-      <h1 className="text-2xl font-bold text-slate-900">
+    <div className="mx-auto min-h-dvh max-w-md bg-surface-page px-5 py-8">
+      <h1 className="text-3xl font-extrabold tracking-[-0.02em] text-ink">
         {existing ? 'Profiel wijzigen' : 'Welkom bij CalCount'}
       </h1>
-      <p className="mt-1 text-slate-500">
+      <p className="mt-1 text-text-muted">
         Vul je gegevens in zodat we je dagbudget kunnen berekenen.
       </p>
 
@@ -164,7 +164,7 @@ export function Onboarding({ existing, onDone, onCancel }: Props) {
         </Field>
 
         {mutation.isError && (
-          <p className="text-sm text-red-600">
+          <p className="text-sm font-medium text-budget-over">
             {(mutation.error as Error).message}
           </p>
         )}
@@ -173,7 +173,7 @@ export function Onboarding({ existing, onDone, onCancel }: Props) {
           <button
             type="submit"
             disabled={mutation.isPending}
-            className="w-full rounded-2xl bg-green-600 py-4 text-lg font-semibold text-white active:bg-green-700 disabled:opacity-50"
+            className="w-full rounded-lg bg-ink py-4 text-lg font-semibold text-surface-page active:opacity-90 disabled:opacity-50"
           >
             {mutation.isPending ? 'Opslaan...' : 'Opslaan'}
           </button>
@@ -181,7 +181,7 @@ export function Onboarding({ existing, onDone, onCancel }: Props) {
             <button
               type="button"
               onClick={onCancel}
-              className="w-full rounded-2xl py-3 text-slate-500"
+              className="w-full rounded-lg py-3 text-text-muted"
             >
               Annuleren
             </button>
@@ -193,12 +193,12 @@ export function Onboarding({ existing, onDone, onCancel }: Props) {
 }
 
 const inputClass =
-  'w-full rounded-2xl border border-slate-200 bg-white px-4 py-4 text-lg outline-none focus:border-green-500';
+  'w-full rounded-lg border border-ink/10 bg-surface-card px-4 py-4 text-lg text-ink outline-none focus:border-budget-under';
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-sm font-medium text-slate-700">
+      <span className="mb-1.5 block text-xs font-semibold text-text-subtle">
         {label}
       </span>
       {children}
@@ -219,10 +219,10 @@ function ToggleButton({
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-2xl border py-4 text-lg font-medium ${
+      className={`rounded-lg border py-4 text-lg font-medium ${
         active
-          ? 'border-green-600 bg-green-50 text-green-700'
-          : 'border-slate-200 bg-white text-slate-600'
+          ? 'border-ink bg-ink text-surface-page'
+          : 'border-ink/10 bg-surface-card text-text-subtle'
       }`}
     >
       {children}
