@@ -134,11 +134,13 @@ via `Authorization: Bearer …` of de bestaande sessiecookie.
 | `GET`, `PUT` | `/api/profile` | Profiel ophalen/vervangen |
 | `GET` | `/api/budget?date=YYYY-MM-DD` | TDEE, budget, gegeten en resterend |
 | `GET`, `POST` | `/api/entries` | Dagitems ophalen / item toevoegen |
+| `POST` | `/api/entries/batch` | 1–20 maaltijdonderdelen atomair toevoegen |
 | `PATCH`, `DELETE` | `/api/entries/:id` | Item wijzigen / verwijderen |
 | `GET` | `/api/nutrition?date=` | Dagtotalen, automatische richtwaarden en datadekking |
 | `GET` | `/api/nutrition/week?end=` | Zevendaags gemiddelde, macroverhouding en rustig oordeel |
 | `GET` | `/api/foods/search?q=` | Open Food Facts + cache zoeken |
 | `POST` | `/api/foods/estimate` | AI-tekstschatting |
+| `POST` | `/api/foods/analyze` | Standaard gecombineerde tekst-/fotoanalyse |
 | `GET` | `/api/foods/recent` | Recente unieke items |
 | `POST` | `/api/photo/analyze` | Foto analyseren zonder opslag |
 | `GET`, `POST` | `/api/weights` | Gewicht ophalen / toevoegen |
@@ -160,7 +162,17 @@ vastgelegd; daarna is het profiel leidend.
 `POST /api/foods/estimate` stuurt een omschrijving server-side naar Claude en dwingt een
 JSON-schema af met naam, gram, calorieën, optionele macro's en confidence.
 
-### Fotoanalyse — geparkeerde Epic 3
+### Gecombineerde AI-/fotoanalyse
+
+`POST /api/foods/analyze` accepteert minimaal één van `description` of een tijdelijke
+base64-afbeelding (`image` + `mediaType`). Bij beide gebruikt de tekst de foto als extra
+context. Het antwoord bevat `items[]` met naam, gram, kcal, eiwit, koolhydraten, vet,
+vezels en confidence. De browser verkleint naar maximaal 1024 px en JPEG-kwaliteit 0,8.
+De backend verwerkt de bytes uitsluitend in de lopende Anthropic-request: er is geen
+fotoveld, bestandsschrijfactie of databaseopslag. Bevestigde items worden zonder foto via
+`POST /api/entries/batch` in één Prisma-transactie opgeslagen.
+
+### Legacy foto-endpoint
 
 `POST /api/photo/analyze` accepteert `{ image, mediaType }`. De client schaalt de foto
 naar maximaal 1024 px en JPEG-kwaliteit 0,8 voordat base64-upload plaatsvindt. Fastify
@@ -174,16 +186,17 @@ interface AiPhotoEstimate {
     name: string;
     estimatedGrams: number;
     calories: number;
-    protein?: number;
-    carbs?: number;
-    fat?: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+    fiber: number;
     confidence: 'low' | 'medium' | 'high';
   }>;
 }
 ```
 
-De analyse en read-only preview bestaan. Correctie, multi-itembeheer en opslaan als
-`source: 'photo'` zijn bewust geparkeerd.
+`POST /api/photo/analyze` en `/api/foods/estimate` blijven tijdelijk beschikbaar voor
+compatibiliteit, maar de frontend gebruikt uitsluitend de gecombineerde route.
 
 ### Inzichten en coach
 
@@ -252,7 +265,7 @@ bijbehorende frontend/backendcode wacht op de normale deploy.
 
 ## 12. Actuele bouwvolgorde
 
-1. Epic 5/6-code deployen en productieflows verifiëren.
-2. Mobiel visueel verifiëren: badgepopup, profielthema, inzichten en coach.
+1. Gecombineerde AI-invoer deployen en productieflows verifiëren.
+2. Mobiel visueel verifiëren: camera/galerij, correctie, profielthema en dark mode.
 3. Bundlesplitsing voor Recharts als losse technische optimalisatie overwegen.
-4. Epic 3 pas hervatten wanneer de opdrachtgever dat opnieuw prioriteert.
+4. Gecombineerde AI-invoer in productie met tekst, foto en beide samen controleren.

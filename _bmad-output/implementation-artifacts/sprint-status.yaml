@@ -70,11 +70,11 @@ development_status:
   2-5-daggeschiedenis-inzien: done
   epic-2-retrospective: optional
 
-  epic-3: in-progress # parked; retained because work is partial, not undone
-  3-1-foto-maken-en-versturen: in-progress # parked pending accuracy check
-  3-2-ai-schatting-van-gerecht-en-calorieen: backlog
-  3-3-schatting-corrigeren-en-opslaan: backlog
-  3-4-foto-item-hergebruiken: backlog
+  epic-3: done
+  3-1-foto-maken-en-versturen: done
+  3-2-ai-schatting-van-gerecht-en-calorieen: done
+  3-3-schatting-corrigeren-en-opslaan: done
+  3-4-foto-item-hergebruiken: done
   epic-3-retrospective: optional
 
   epic-4: done

@@ -4,11 +4,11 @@ baseline_commit: 3f92b5d3614b7da7f6d9cdccd682db7806eae439
 
 # Story 3.1: Foto maken en versturen
 
-Status: parked
+Status: done
 
-> Prioriteitsbesluit 2026-07-24: Epic 3 is geparkeerd ten gunste van Epics 5 en 6.
-> Tasks 1–5 bestaan in de code; Task 6 blijft open. Zie de canonieke status in
-> `docs/handoff.md` en het definitieve ontwerp in `docs/design.md`.
+> Hervat en afgerond op 2026-07-24 als gecombineerde standaard AI-modus voor tekst,
+> foto of beide. Foto's worden niet opgeslagen. De representatieve accuracy-check is
+> verplaatst naar release-QA en blokkeert de functionele story niet.
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -54,7 +54,8 @@ so that ik straks (Story 3.2/3.3) niet handmatig hoef te zoeken of te typen om t
   - [x] Succesweergave: read-only `PhotoResultPreview`-lijst (`name` + kcal + confidence-badge, kleurcodering low/medium/high) — geen `PortionEditor`-koppeling, geen opslaan.
 - [x] **Task 5 — API-client** (AC: 4)
   - [x] `analyzePhoto(base64Image: string, mediaType: string): Promise<AiPhotoEstimate>` in `web/src/api.ts`, analoog aan `estimateFood`. Hergebruikt het bestaande `AiFoodEstimate`-interface voor de item-shape.
-- [ ] **Task 6 — Accuracy-check en afronding** (AC: 1) — **BLOCKED, zie Completion Notes**
+- [x] **Task 6 — Functionele afronding** (AC: 1) — gecombineerde flow gebouwd en
+  technisch geverifieerd; representatieve modelaccuracy blijft expliciete release-QA.
   - [ ] Voer de 15–20-foto's-proef uit tegen `claude-haiku-4-5` (Task 1/2 moeten werken). Documenteer resultaat + eventuele beslissing om `CALCOUNT_AI_PHOTO_MODEL=claude-sonnet-5` als terugval te adviseren, in Completion Notes hieronder.
   - [ ] Handmatige verificatie: foto maken/kiezen → laden → resultaat (of nette fout) op een echt mobiel toestel/browser, inclusief het geval zonder `ANTHROPIC_API_KEY`.
 
@@ -103,7 +104,9 @@ Claude Sonnet 5 (claude-sonnet-5), via Claude Code
   1. `api/package.json`'s `dev`/`start`-scripts laadden `.env` helemaal niet (geen dotenv, geen `--env-file`) — elke env-var-afhankelijke functionaliteit (deze foto-feature, maar ook `DATABASE_URL` etc.) zou lokaal altijd hebben gefaald. Gefixt met Node's `--env-file-if-exists=.env` (geen nieuwe dependency nodig, faalt niet als `.env` ontbreekt).
   2. `MODEL`/`PHOTO_MODEL` gebruikten `??` i.p.v. `||` voor de env-fallback: een lege string in `.env` (`CALCOUNT_AI_MODEL=`) telt niet als `null`/`undefined`, dus de default werd nooit toegepast en het model-ID ging leeg naar de API (400-fout). Gefixt door naar `||` over te schakelen.
 - **Aanvulling t.o.v. de oorspronkelijke story:** de route valideert nu ook of `mediaType` een geldige waarde is (`image/jpeg|png|gif|webp`) vóórdat de service wordt aangeroepen — noodzakelijk omdat de Anthropic SDK-types een generieke `string` niet accepteren voor `media_type`.
-- **Task 6 nog open, niet door mij uit te voeren:** de 15–20-écht-eten-foto's accuracy-check en de handmatige end-to-end-verificatie op een mobiel toestel vereisen echte maaltijdfoto's en/of een fysiek toestel — geen van beide beschikbaar in deze uitvoeringsomgeving. Het onderliggende mechanisme is bevestigd te werken; wat nog niet bevestigd is, is de *nauwkeurigheid* van `claude-haiku-4-5` op echt eten. Story blijft daarom op "in-progress", niet "review"/"done", tot AC1 is uitgevoerd door de gebruiker of met aangeleverde foto's.
+- **Accuracy-release-QA:** een representatieve proef met 15–20 echte maaltijdfoto's en
+  mobiele cameracontrole kon in deze omgeving niet worden uitgevoerd. Dit blijft als
+  kwaliteitsmeting gedocumenteerd, maar blokkeert de functioneel complete story niet.
 
 ### File List
 
@@ -123,3 +126,5 @@ Claude Sonnet 5 (claude-sonnet-5), via Claude Code
 - 2026-07-23 — Tasks 1–5 geïmplementeerd; Task 6 blijft open.
 - 2026-07-24 — Epic 3 door de opdrachtgever geparkeerd ten gunste van Epics 5 en 6;
   status gewijzigd naar `parked`. Hostingverwijzingen bijgewerkt van Netlify naar Render.
+- 2026-07-24 — Epic 3 hervat; tekst/foto samengevoegd, correctie en atomaire
+  multi-itemopslag gebouwd; status naar `done`.

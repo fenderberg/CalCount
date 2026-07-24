@@ -13,13 +13,14 @@ betrouwbare cross-origin sessie; een HttpOnly-cookie blijft als compatibiliteits
 |---|---|---|
 | 1 — Fundament & budget | ✅ | Profiel, Mifflin-St Jeor, doeltempo, veilig dagbudget en budgetring |
 | 2 — Eten loggen | ✅ | Zoeken, handmatig, AI-tekst, recent, CRUD, daghistorie en budgetstatus |
-| 3 — AI-fotoherkenning | ⏸️ Geparkeerd | Camera/galerij, compressie, AI-route en read-only preview; correctie/opslag en accuracy-check open |
+| 3 — Gecombineerde AI-invoer | ✅ | Tekst, foto of beide; compressie, bewerkbare multi-itemresultaten en atomaire opslag zonder fotobewaring |
 | 4 — Voortgang | ✅ | Gewicht CRUD, trendgrafiek, streefgewicht en automatische budgetherberekening |
 | 5 — Motivatie | ✅ | Streak, vaste tijdzone, permanente awards en tijdelijke badgepopup bij openen Voortgang |
 | 6 — AI-advies | ✅ | Wekelijkse inzichtsnapshots en sessiegebaseerde AI-coach met daglimiet |
 | 7 — Voedingsbalans | ✅ | Vier dagbalken, weekgemiddelde, macroverhouding, datadekking en rustig advies |
 
-Epic 6 en 7 zijn afgerond. Epic 3 blijft geparkeerd totdat fotofunctionaliteit opnieuw wordt geprioriteerd.
+Alle geplande epics zijn functioneel gebouwd. Voor echte AI-analyse moet in de doelomgeving
+een geldige `ANTHROPIC_API_KEY` staan; lokaal is die momenteel niet geconfigureerd.
 De actuele app-shell volgt het aangeleverde HTML-design: open-ringlogo/PWA-icon,
 tweestaps onboarding, compacte dagheader en 92 px tabbalk met centrale logactie.
 Op 2026-07-24 zijn alle 11 bestaande eetlogregels eenmalig aangevuld met geschatte
@@ -115,6 +116,8 @@ items direct mee en herberekent verwijderen automatisch.
 | `GET`, `PUT` | `/api/profile` | Profiel ophalen/vervangen |
 | `GET` | `/api/budget?date=` | Dagbudget |
 | `GET`, `POST`, `PATCH`, `DELETE` | `/api/entries` / `:id` | Eetlog CRUD |
+| `POST` | `/api/entries/batch` | Meerdere AI-items atomair opslaan |
+| `POST` | `/api/foods/analyze` | Tekst, tijdelijke foto of combinatie analyseren |
 | `GET` | `/api/nutrition` en `/api/nutrition/week` | Dag- en weekbalans met richtwaarden en datadekking |
 | `GET` | `/api/foods/search?q=` | Product zoeken |
 | `POST` | `/api/foods/estimate` | AI-tekstschatting |
@@ -148,7 +151,7 @@ items direct mee en herberekent verwijderen automatisch.
 - [design.md](design.md) is de designautoriteit; gamification gebruikt de rustige lila
   reward-familie en blijft ondergeschikt aan de budgetring.
 - Light/dark-thema gebruikt semantische CSS-tokens; de keuze staat in het profiel.
-- Fotoherkenning wordt niet verder afgebouwd totdat Epic 3 opnieuw wordt geprioriteerd.
+- Foto's worden client-side gecomprimeerd, alleen in de analyse-request verwerkt en nooit opgeslagen.
 - AI-coachgesprekken worden alleen in de browsersessie onthouden, niet persistent.
 - Render free tier kan na inactiviteit een koude start hebben.
 - Login retourneert een bearer-token voor browsers die de GitHub Pages → Render-cookie
@@ -156,8 +159,8 @@ items direct mee en herberekent verwijderen automatisch.
 
 ## Volgende stappen
 
-1. De huidige design- en Epic 7-code committen en naar GitHub Pages/Render deployen.
-2. Productiecontrole uitvoeren voor de dagelijkse voedingsbalken, weekweergave en datadekking.
-3. Handmatige mobiele visuele controle uitvoeren voor de volledige vernieuwde app-shell en dark mode.
-4. Meer items met voedingswaarden loggen; het weekoordeel wordt inhoudelijk vanaf vier dagen en 70% dekking.
-5. Epic 3 alleen hervatten na een nieuw expliciet prioriteitsbesluit.
+1. Productiedeploy na deze commit controleren op `/api/foods/analyze` en `/api/entries/batch`.
+2. Met de productie-AI-sleutel tekst, foto en de combinatie daarvan end-to-end testen.
+3. Handmatige mobiele controle uitvoeren voor camera, galerij, correctie en dark mode.
+4. De modelnauwkeurigheid later met een representatieve set echte maaltijdfoto's meten;
+   dit is release-QA, geen ontbrekende applicatiefunctionaliteit.

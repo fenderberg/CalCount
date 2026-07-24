@@ -138,7 +138,7 @@ Huidige status:
   9 kcal/g voor vet); vezels worden apart beoordeeld.
 - Wekelijkse AI-inzichten en de sessiegebaseerde AI-coach zijn geïmplementeerd.
 - Light/dark mode is op alle huidige schermen via semantische tokens geïmplementeerd.
-- Fotoanalyse heeft een geparkeerde read-only preview; correctie en opslag volgen later.
+- AI is de standaardmodus van de logsheet en combineert tekst en foto in één flow.
 
 ## 4. Componentpatronen
 
@@ -187,8 +187,12 @@ Toon deze onderdelen samen en presenteer AI-resultaten nooit als exacte feiten.
 
 ### Logsheet en correctie
 
-De centrale FAB opent één bottom sheet met de modi Recent, Zoeken, Handmatig, AI-tekst en
-Foto. De modi verdelen zich op beperkte breedte over twee rijen.
+De centrale FAB opent één bottom sheet met vier modi: **AI**, Recent, Zoeken en Handmatig.
+AI staat standaard open. Daar kan de gebruiker een omschrijving typen, een foto
+maken/kiezen of beide combineren. Na analyse verschijnen één of meer bewerkbare kaarten
+met naam, gram, kcal, eiwit, koolhydraten, vet, vezels en confidence. De gebruiker kan
+items verwijderen of toevoegen en bevestigt de hele maaltijd met één actie. Een gekozen
+foto is alleen als tijdelijke preview/requestdata aanwezig en verdwijnt bij sluiten.
 
 ### Onderste tabbalk
 
@@ -268,7 +272,7 @@ respecteert reduced-motion.
 | Logo/app-icon | Open-doel-teken uit HTML-design gebouwd voor UI, favicon en PWA-manifest |
 | Onboarding | Tweestaps kaartflow uit HTML-design gebouwd |
 | Bottom tab bar | 92 px glazen balk met centrale verhoogde log-FAB gebouwd |
-| Foto-flow | Geparkeerd; design blijft geldig voor latere hervatting |
+| AI/foto-flow | Gebouwd als gecombineerde standaardmodus met correctie en multi-itemopslag |
 
 ## 8. Relatie tot andere documentatie
 

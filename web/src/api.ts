@@ -198,6 +198,17 @@ export interface AiPhotoEstimate {
   items: AiFoodEstimate[];
 }
 
+export function analyzeFood(input: {
+  description?: string;
+  image?: string;
+  mediaType?: string;
+}): Promise<AiPhotoEstimate> {
+  return request<AiPhotoEstimate>('/api/foods/analyze', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
 export function analyzePhoto(
   base64Image: string,
   mediaType: string,
@@ -279,6 +290,13 @@ export async function login(username: string, password: string): Promise<{ ok: t
   });
   localStorage.setItem(AUTH_TOKEN_KEY, response.token);
   return { ok: true };
+}
+
+export function createEntries(entries: NewEntry[]): Promise<FoodEntry[]> {
+  return request<FoodEntry[]>('/api/entries/batch', {
+    method: 'POST',
+    body: JSON.stringify(entries),
+  });
 }
 
 export type DailyNutrition = NutritionSummary & { date: string };

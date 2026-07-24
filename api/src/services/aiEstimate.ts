@@ -26,16 +26,16 @@ const PHOTO_MODEL = process.env.CALCOUNT_AI_PHOTO_MODEL || MODEL;
 const ESTIMATE_SCHEMA = {
   type: 'object',
   properties: {
-    name: { type: 'string', description: 'Korte naam van het gerecht/voedingsmiddel' },
-    estimatedGrams: { type: 'number', description: 'Geschatte portiegrootte in gram' },
-    calories: { type: 'number', description: 'Geschatte totale calorieën (kcal) voor deze portie' },
-    protein: { type: 'number' },
-    carbs: { type: 'number' },
-    fat: { type: 'number' },
-    fiber: { type: 'number' },
+    name: { type: 'string', minLength: 1, description: 'Korte naam van het gerecht/voedingsmiddel' },
+    estimatedGrams: { type: 'number', minimum: 0, description: 'Geschatte portiegrootte in gram' },
+    calories: { type: 'number', minimum: 0, description: 'Geschatte totale calorieën (kcal) voor deze portie' },
+    protein: { type: 'number', minimum: 0 },
+    carbs: { type: 'number', minimum: 0 },
+    fat: { type: 'number', minimum: 0 },
+    fiber: { type: 'number', minimum: 0 },
     confidence: { type: 'string', enum: ['low', 'medium', 'high'] },
   },
-  required: ['name', 'estimatedGrams', 'calories', 'confidence'],
+  required: ['name', 'estimatedGrams', 'calories', 'protein', 'carbs', 'fat', 'fiber', 'confidence'],
   additionalProperties: false,
 } as const;
 
@@ -44,6 +44,8 @@ const PHOTO_ESTIMATE_SCHEMA = {
   properties: {
     items: {
       type: 'array',
+      minItems: 1,
+      maxItems: 20,
       items: ESTIMATE_SCHEMA,
     },
   },
@@ -53,6 +55,65 @@ const PHOTO_ESTIMATE_SCHEMA = {
 
 export interface AiPhotoEstimate {
   items: AiFoodEstimate[];
+}
+
+function normalizeItems(items: AiFoodEstimate[]): AiFoodEstimate[] {
+  return items.map((item) => ({
+    name: item.name,
+    estimatedGrams: Math.round(item.estimatedGrams),
+    calories: Math.round(item.calories),
+    protein: item.protein,
+    carbs: item.carbs,
+    fat: item.fat,
+    fiber: item.fiber,
+    confidence: item.confidence,
+  }));
+}
+
+/** Analyseert tekst, foto of beide. De afbeelding leeft alleen in deze request. */
+export async function analyzeFood(input: {
+  description?: string;
+  base64Image?: string;
+  mediaType?: PhotoMediaType;
+}): Promise<AiPhotoEstimate> {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    throw new AiUnavailableError('AI-analyse is niet geconfigureerd (geen API-sleutel)');
+  }
+  const description = input.description?.trim() ?? '';
+  const hasImage = Boolean(input.base64Image && input.mediaType);
+  if (!description && !hasImage) throw new Error('Tekst of foto is verplicht');
+
+  const instruction =
+    'Analyseer het eten en schat per afzonderlijk gerecht/product de portiegrootte, ' +
+    'calorieën, eiwit, koolhydraten, vet en vezels. Geef meerdere items apart terug. ' +
+    'Gebruik eventuele tekst als aanvullende context bij de foto en wees eerlijk over ' +
+    'onzekerheid via confidence.' +
+    (description ? ` Aanvullende omschrijving: "${description}"` : '');
+
+  const client = new Anthropic();
+  const content = hasImage
+    ? [
+        {
+          type: 'image' as const,
+          source: {
+            type: 'base64' as const,
+            media_type: input.mediaType!,
+            data: input.base64Image!,
+          },
+        },
+        { type: 'text' as const, text: instruction },
+      ]
+    : instruction;
+  const response = await client.messages.create({
+    model: hasImage ? PHOTO_MODEL : MODEL,
+    max_tokens: 1536,
+    output_config: { format: { type: 'json_schema', schema: PHOTO_ESTIMATE_SCHEMA } },
+    messages: [{ role: 'user', content }],
+  });
+  const textBlock = response.content.find((block) => block.type === 'text');
+  if (!textBlock || textBlock.type !== 'text') throw new Error('Onverwacht AI-antwoord');
+  const parsed = JSON.parse(textBlock.text) as AiPhotoEstimate;
+  return { items: normalizeItems(parsed.items) };
 }
 
 /**

@@ -1,20 +1,20 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import {
-  analyzePhoto,
+  analyzeFood,
+  createEntries,
   createEntry,
-  estimateFood,
   getBudget,
   getRecent,
   searchFoods,
-  type AiPhotoEstimate,
+  type AiFoodEstimate,
   type FoodEntry,
   type FoodRef,
   type NewEntry,
 } from '../api.js';
 import { loggedAtForDay } from '@calcount/core';
 
-type Tab = 'recent' | 'search' | 'manual' | 'ai' | 'photo';
+type Tab = 'ai' | 'recent' | 'search' | 'manual';
 
 /** Concept-item dat de gebruiker bevestigt vóór opslaan. */
 interface Draft {
@@ -37,12 +37,14 @@ interface Props {
 }
 
 export function LogSheet({ date, onClose }: Props) {
-  const [tab, setTab] = useState<Tab>('recent');
+  const [tab, setTab] = useState<Tab>('ai');
   const [draft, setDraft] = useState<Draft | null>(null);
   const queryClient = useQueryClient();
 
   const logMutation = useMutation({
-    mutationFn: (entry: NewEntry) => createEntry(entry),
+    mutationFn: (entries: NewEntry[]) => entries.length === 1
+      ? createEntry(entries[0]).then((entry) => [entry])
+      : createEntries(entries),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['budget'] });
       queryClient.invalidateQueries({ queryKey: ['entries'] });
@@ -55,7 +57,11 @@ export function LogSheet({ date, onClose }: Props) {
   });
 
   function save(d: Draft) {
-    logMutation.mutate({
+    saveMany([d]);
+  }
+
+  function saveMany(drafts: Draft[]) {
+    logMutation.mutate(drafts.map((d) => ({
       name: d.name,
       source: d.source,
       calories: d.calories,
@@ -68,7 +74,7 @@ export function LogSheet({ date, onClose }: Props) {
       // Bucket het item in de bekeken kalenderdag (middag-UTC), zodat het
       // ongeacht tijdzone op precies die dag verschijnt.
       loggedAt: loggedAtForDay(date),
-    });
+    })));
   }
 
   return (
@@ -90,20 +96,19 @@ export function LogSheet({ date, onClose }: Props) {
         />
       ) : (
         <>
-          <nav className="flex flex-wrap gap-1 px-3 py-2">
+          <nav className="grid grid-cols-4 gap-1 px-3 py-2">
             {(
               [
+                ['ai', 'AI'],
                 ['recent', 'Recent'],
                 ['search', 'Zoeken'],
                 ['manual', 'Handmatig'],
-                ['ai', 'AI'],
-                ['photo', 'Foto'],
               ] as [Tab, string][]
             ).map(([value, label]) => (
               <button
                 key={value}
                 onClick={() => setTab(value)}
-                className={`min-h-tap-min basis-[30%] flex-grow rounded-full px-2 py-2 text-sm font-semibold ${
+                className={`min-h-tap-min rounded-full px-1 py-2 text-[13px] font-semibold ${
                   tab === value
                     ? 'bg-ink text-surface-page'
                     : 'bg-surface-muted text-text-subtle'
@@ -120,8 +125,8 @@ export function LogSheet({ date, onClose }: Props) {
             )}
             {tab === 'search' && <SearchTab onPick={setDraft} />}
             {tab === 'manual' && <ManualTab onPick={setDraft} />}
-            {tab === 'ai' && <AiTab onPick={setDraft} />}
-            {tab === 'photo' && <PhotoTab />}
+            {tab === 'ai' && <AiTab onSave={saveMany} saving={logMutation.isPending}
+              saveError={logMutation.error as Error | null} />}
           </div>
         </>
       )}
@@ -320,69 +325,7 @@ function ManualTab({ onPick }: { onPick: (d: Draft) => void }) {
   );
 }
 
-// ---- AI-tekstschatting ----
-function AiTab({ onPick }: { onPick: (d: Draft) => void }) {
-  const [description, setDescription] = useState('');
-  const mutation = useMutation({ mutationFn: (d: string) => estimateFood(d) });
-
-  function submit(e: React.FormEvent) {
-    e.preventDefault();
-    mutation.mutate(description.trim(), {
-      onSuccess: (est) =>
-        onPick({
-          name: est.name,
-          source: 'ai',
-          grams: est.estimatedGrams,
-          calories: est.calories,
-          protein: est.protein,
-          carbs: est.carbs,
-          fat: est.fat,
-          fiber: est.fiber,
-          isEstimate: true,
-        }),
-    });
-  }
-
-  const unavailable = (mutation.error as { message?: string })?.message?.includes(
-    'niet geconfigureerd',
-  );
-
-  return (
-    <form onSubmit={submit} className="space-y-4">
-      <LabeledInput label="Omschrijf wat je at">
-        <textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Bijv. een handje amandelen, of twee sneetjes bruinbrood met kaas"
-          rows={3}
-          className={fieldClass}
-        />
-      </LabeledInput>
-      <button
-        type="submit"
-        disabled={description.trim().length < 2 || mutation.isPending}
-        className="w-full rounded-lg bg-ink py-4 text-lg font-semibold text-surface-page disabled:opacity-40"
-      >
-        {mutation.isPending ? 'Schatten...' : 'Laat AI schatten'}
-      </button>
-      {mutation.isError && (
-        <p className="rounded-lg bg-budget-near/10 px-4 py-3 text-sm font-medium text-budget-near">
-          {unavailable
-            ? 'AI-schatting is nog niet beschikbaar (geen API-sleutel ingesteld). Gebruik zolang Zoeken of Handmatig.'
-            : 'Schatten lukte niet. Probeer het opnieuw of voeg handmatig toe.'}
-        </p>
-      )}
-      <p className="text-xs text-text-faint">
-        AI geeft een schatting met marge — je kunt de waarden daarna nog aanpassen.
-      </p>
-    </form>
-  );
-}
-
-// ---- Foto-herkenning (Epic 3, Story 3.1) ----
-// Compressie vóór upload: base64 blaast de bestandsgrootte ~33% op, en de
-// backend heeft een bodyLimit van 10MB (api/src/app.ts) — comprimeren houdt
-// uploads ruim daaronder en scheelt mobiele data/snelheid.
+// ---- Gecombineerde AI-analyse: tekst, foto of beide ----
 const PHOTO_MAX_DIMENSION = 1024;
 const PHOTO_JPEG_QUALITY = 0.8;
 
@@ -416,87 +359,178 @@ function compressImageFile(
   });
 }
 
-function PhotoTab() {
+interface AiDraft extends Draft {
+  confidence: AiFoodEstimate['confidence'];
+}
+
+function estimateToDraft(item: AiFoodEstimate, source: 'ai' | 'photo'): AiDraft {
+  return {
+    name: item.name,
+    source,
+    grams: item.estimatedGrams,
+    calories: item.calories,
+    protein: item.protein,
+    carbs: item.carbs,
+    fat: item.fat,
+    fiber: item.fiber,
+    confidence: item.confidence,
+    isEstimate: true,
+  };
+}
+
+function AiTab({ onSave, saving, saveError }: {
+  onSave: (items: Draft[]) => void;
+  saving: boolean;
+  saveError: Error | null;
+}) {
+  const [description, setDescription] = useState('');
+  const [photo, setPhoto] = useState<{ base64: string; mediaType: string } | null>(null);
+  const [photoError, setPhotoError] = useState<string | null>(null);
+  const [items, setItems] = useState<AiDraft[] | null>(null);
   const mutation = useMutation({
-    mutationFn: async (file: File) => {
-      const { base64, mediaType } = await compressImageFile(file);
-      return analyzePhoto(base64, mediaType);
-    },
+    mutationFn: () => analyzeFood({
+      description: description.trim() || undefined,
+      image: photo?.base64,
+      mediaType: photo?.mediaType,
+    }),
+    onSuccess: (result) => setItems(result.items.map((item) => estimateToDraft(item, photo ? 'photo' : 'ai'))),
   });
 
-  function onFileChosen(e: React.ChangeEvent<HTMLInputElement>) {
+  async function onFileChosen(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (file) mutation.mutate(file);
+    if (!file) return;
+    e.currentTarget.value = '';
+    try {
+      setPhotoError(null);
+      setPhoto(await compressImageFile(file));
+      setItems(null);
+    } catch {
+      setPhotoError('Deze foto kon niet worden gelezen. Kies een andere foto.');
+    }
   }
 
-  const unavailable = (mutation.error as { message?: string })?.message?.includes(
-    'niet geconfigureerd',
-  );
+  function submit(event: React.FormEvent) {
+    event.preventDefault();
+    mutation.mutate();
+  }
+
+  function updateItem(index: number, patch: Partial<AiDraft>) {
+    setItems((current) => current?.map((item, itemIndex) => itemIndex === index ? { ...item, ...patch } : item) ?? null);
+  }
+
+  function addItem() {
+    setItems((current) => [...(current ?? []), {
+      name: '', source: photo ? 'photo' : 'ai', grams: 100, calories: 0,
+      protein: 0, carbs: 0, fat: 0, fiber: 0, confidence: 'low', isEstimate: true,
+    }]);
+  }
+
+  const canAnalyze = description.trim().length >= 2 || photo !== null;
+  const validItems = items?.filter((item) => item.name.trim() && item.calories >= 0) ?? [];
 
   return (
-    <div className="space-y-4">
-      <label className="block w-full cursor-pointer rounded-lg bg-ink py-4 text-center text-lg font-semibold text-surface-page">
-        Foto maken of kiezen
-        <input
-          type="file"
-          accept="image/*"
-          capture="environment"
-          onChange={onFileChosen}
-          disabled={mutation.isPending}
-          className="hidden"
-        />
-      </label>
-
-      {mutation.isPending && <PhotoSkeleton />}
-
-      {mutation.isError && (
-        <p className="rounded-lg bg-budget-near/10 px-4 py-3 text-sm font-medium text-budget-near">
-          {unavailable
-            ? 'AI-fotoherkenning is nog niet beschikbaar (geen API-sleutel ingesteld). Gebruik zolang Zoeken of Handmatig.'
-            : 'Foto herkennen lukte niet. Probeer het opnieuw of voeg handmatig toe.'}
-        </p>
+    <form onSubmit={submit} className="space-y-4">
+      {!items && (
+        <>
+          <div>
+            <h3 className="text-lg font-extrabold text-ink">Wat heb je gegeten?</h3>
+            <p className="mt-1 text-sm leading-5 text-text-muted">Typ een korte omschrijving, voeg een foto toe, of combineer beide.</p>
+          </div>
+          <textarea value={description} onChange={(event) => setDescription(event.target.value)}
+            placeholder="Bijv. zalm met aardappels en salade" rows={3} className={fieldClass} />
+          {photo && <img src={`data:${photo.mediaType};base64,${photo.base64}`} alt="Gekozen maaltijd" className="max-h-48 w-full rounded-lg object-cover" />}
+          <div className="grid grid-cols-2 gap-2">
+            <label className="flex min-h-tap-min cursor-pointer items-center justify-center rounded-lg bg-surface-muted px-3 text-center text-sm font-semibold text-text-subtle">
+              Foto maken
+              <input type="file" accept="image/*" capture="environment" onChange={onFileChosen}
+                disabled={mutation.isPending} className="hidden" />
+            </label>
+            <label className="flex min-h-tap-min cursor-pointer items-center justify-center rounded-lg bg-surface-muted px-3 text-center text-sm font-semibold text-text-subtle">
+              Foto kiezen
+              <input type="file" accept="image/*" onChange={onFileChosen}
+                disabled={mutation.isPending} className="hidden" />
+            </label>
+          </div>
+          {photo && (
+            <button type="button" onClick={() => setPhoto(null)} className="w-full text-sm text-text-muted">Foto verwijderen</button>
+          )}
+          {photoError && <p className="rounded-lg bg-budget-near/10 px-4 py-3 text-sm text-budget-near">{photoError}</p>}
+          <button type="submit" disabled={!canAnalyze || mutation.isPending}
+            className="w-full rounded-lg bg-ink py-4 text-lg font-semibold text-surface-page disabled:opacity-40">
+            {mutation.isPending ? 'AI analyseert…' : 'Analyseren'}
+          </button>
+          {mutation.isPending && <PhotoSkeleton />}
+          {mutation.isError && (
+            <p className="rounded-lg bg-budget-near/10 px-4 py-3 text-sm font-medium text-budget-near">
+              {(mutation.error as Error).message.includes('niet geconfigureerd')
+                ? 'AI is nog niet beschikbaar. Gebruik Zoeken of Handmatig.'
+                : 'Analyseren lukte niet. Probeer het opnieuw of gebruik Handmatig.'}
+            </p>
+          )}
+        </>
       )}
 
-      {mutation.isSuccess && <PhotoResultPreview result={mutation.data} />}
-
-      <p className="text-xs text-text-faint">
-        AI geeft een schatting met marge. Corrigeren en opslaan volgt in een volgende stap.
-      </p>
-    </div>
+      {items && (
+        <>
+          <div className="flex items-start justify-between gap-3">
+            <div><h3 className="text-lg font-extrabold text-ink">Controleer de schatting</h3><p className="mt-1 text-xs text-text-faint">Pas aan wat niet klopt. De foto wordt niet bewaard.</p></div>
+            <button type="button" onClick={() => setItems(null)} className="text-sm font-semibold text-text-muted">Opnieuw</button>
+          </div>
+          <div className="space-y-3">
+            {items.map((item, index) => (
+              <AiItemEditor key={index} item={item} onChange={(patch) => updateItem(index, patch)}
+                onRemove={() => setItems((current) => current?.filter((_, itemIndex) => itemIndex !== index) ?? null)} />
+            ))}
+          </div>
+          <button type="button" onClick={addItem} className="w-full rounded-lg bg-surface-muted py-3 text-sm font-semibold text-text-subtle">+ Gemist item toevoegen</button>
+          <button type="button" disabled={saving || validItems.length === 0}
+            onClick={() => onSave(validItems)} className="w-full rounded-lg bg-ink py-4 text-lg font-semibold text-surface-page disabled:opacity-40">
+            {saving ? 'Opslaan…' : `${validItems.length} ${validItems.length === 1 ? 'item' : 'items'} toevoegen`}
+          </button>
+          {saveError && <p className="rounded-lg bg-budget-over/10 px-4 py-3 text-sm text-budget-over">Opslaan lukte niet. Je correcties staan er nog; probeer het opnieuw.</p>}
+        </>
+      )}
+      <p className="text-xs leading-5 text-text-faint">AI geeft een schatting met marge. Foto’s worden alleen voor deze analyse verwerkt en niet opgeslagen.</p>
+    </form>
   );
 }
 
-/** Read-only weergave van de herkende items (Story 3.1 scope — geen correctie/opslaan). */
-function PhotoResultPreview({ result }: { result: AiPhotoEstimate }) {
-  if (result.items.length === 0) {
-    return <Muted>Geen items herkend op deze foto. Probeer Zoeken of Handmatig.</Muted>;
-  }
+function AiItemEditor({ item, onChange, onRemove }: {
+  item: AiDraft;
+  onChange: (patch: Partial<AiDraft>) => void;
+  onRemove: () => void;
+}) {
+  const numeric = (key: 'grams' | 'calories' | 'protein' | 'carbs' | 'fat' | 'fiber', value: string) =>
+    onChange({ [key]: Math.max(0, Number(value)) } as Partial<AiDraft>);
   return (
-    <ul className="space-y-2">
-      {result.items.map((item, i) => (
-        <li
-          key={i}
-          className="flex items-center justify-between rounded-md border border-ink/[0.07] bg-surface-card px-4 py-3"
-        >
-          <span className="font-medium text-ink">{item.name}</span>
-          <span className="flex items-center gap-2 text-sm text-text-muted">
-            {item.calories} kcal
-            <span
-              className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                item.confidence === 'high'
-                  ? 'bg-confidence-high-surface text-confidence-high'
-                  : item.confidence === 'medium'
-                    ? 'bg-confidence-medium-surface text-confidence-medium'
-                    : 'bg-confidence-low-surface text-confidence-low'
-              }`}
-            >
-              {item.confidence}
-            </span>
-          </span>
-        </li>
-      ))}
-    </ul>
+    <fieldset className="rounded-xl bg-surface-card px-4 py-4">
+      <div className="flex items-center justify-between gap-3">
+        <span className={`rounded-full px-2 py-1 text-[10px] font-bold uppercase ${confidenceClass(item.confidence)}`}>{item.confidence}</span>
+        <button type="button" onClick={onRemove} className="text-sm text-text-muted" aria-label={`${item.name || 'Item'} verwijderen`}>Verwijder</button>
+      </div>
+      <input value={item.name} onChange={(event) => onChange({ name: event.target.value })} aria-label="Naam"
+        className="mt-3 w-full border-0 border-b border-ink/10 bg-transparent pb-2 text-base font-bold text-ink outline-none" />
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        {([
+          ['Gram', 'grams'], ['kcal', 'calories'], ['Eiwit', 'protein'],
+          ['Koolhydraten', 'carbs'], ['Vet', 'fat'], ['Vezels', 'fiber'],
+        ] as const).map(([label, key]) => (
+          <label key={key} className="rounded-md bg-surface-muted px-3 py-2">
+            <span className="block text-[10px] font-semibold text-text-faint">{label}</span>
+            <input type="number" min="0" step={key === 'calories' || key === 'grams' ? '1' : '0.1'}
+              value={item[key] ?? 0} onChange={(event) => numeric(key, event.target.value)}
+              className="mt-0.5 w-full bg-transparent text-sm font-bold text-ink outline-none" />
+          </label>
+        ))}
+      </div>
+    </fieldset>
   );
+}
+
+function confidenceClass(confidence: AiFoodEstimate['confidence']) {
+  if (confidence === 'high') return 'bg-confidence-high-surface text-confidence-high';
+  if (confidence === 'medium') return 'bg-confidence-medium-surface text-confidence-medium';
+  return 'bg-confidence-low-surface text-confidence-low';
 }
 
 function PhotoSkeleton() {

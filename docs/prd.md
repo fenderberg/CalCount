@@ -5,8 +5,8 @@
 | **Project** | CalCount — AI-ondersteunde calorietracker |
 | **Auteur** | PM (BMAD-methode) |
 | **Datum** | 2026-07-23 |
-| **Versie** | v1.2 |
-| **Status** | Actief — Epics 1, 2, 4, 5, 6 & 7 gebouwd; Epic 3 gedeeltelijk gebouwd en geparkeerd. Zie §11. |
+| **Versie** | v1.3 |
+| **Status** | Actief — Epics 1 t/m 7 functioneel gebouwd. Zie §11. |
 
 ---
 
@@ -43,6 +43,7 @@ Het primaire platform is de smartphone. De eerste versie richt zich op één geb
 | 2026-07-24 | v1.1 Epic 5 | Story 5.1 en 5.2 afgerond; permanente awards, oorspronkelijke badgeweergave en aanvullende UX/dark mode gebouwd | Dev |
 | 2026-07-24 | v1.1 Epic 6 | Badgepresentatie versoberd tot tijdelijke popup, dark mode naar Profiel verplaatst en Stories 6.1/6.2 afgerond | Dev |
 | 2026-07-24 | v1.2 Epic 7 | Eenvoudige voedingsbalans toegevoegd: dagelijks compact, wekelijks uitgebreid, met macro's, vezels en expliciete datadekking | PM/Dev |
+| 2026-07-24 | v1.3 Epic 3 | AI-tekst en foto samengevoegd tot standaard logmodus; tijdelijke fotoverwerking, multi-itemcorrectie en atomaire opslag gebouwd | PM/Dev |
 
 ---
 
@@ -53,8 +54,8 @@ Het primaire platform is de smartphone. De eerste versie richt zich op één geb
 - **FR1:** Het systeem berekent het dagelijkse calorie-onderhoudsniveau (TDEE) uit lengte, gewicht, leeftijd, geslacht en activiteitsniveau via de Mifflin-St Jeor-formule.
 - **FR2:** De gebruiker stelt een afvaldoel in (bijv. streefgewicht en/of tempo in kg per week); het systeem leidt hieruit een dagelijks caloriebudget af met een veilig calorietekort.
 - **FR3:** Het systeem toont op het hoofdscherm het resterende caloriebudget van vandaag: budget − gelogd = resterend.
-- **FR4:** De gebruiker kan een voedingsitem loggen door een foto te maken; een AI-visiemodel herkent het gerecht en schat calorieën (en macro's) plus de aannemelijke portiegrootte.
-- **FR5:** Na een AI-schatting kan de gebruiker de geschatte hoeveelheid (gram/porties) en calorieën corrigeren vóór opslaan.
+- **FR4:** De standaard AI-logmodus accepteert tekst, een foto of beide samen; het model herkent één of meer gerechten en schat portiegrootte, calorieën, eiwit, koolhydraten, vet en vezels. Foto's worden uitsluitend tijdelijk voor analyse verwerkt en niet opgeslagen.
+- **FR5:** Na een AI-schatting kan de gebruiker alle herkende items en voedingswaarden corrigeren, verwijderen of aanvullen en de volledige maaltijd atomair opslaan.
 - **FR6:** De gebruiker kan een item loggen door een product te kiezen en het gegeten gewicht in gram (of aantal porties) op te geven; het systeem berekent de calorieën.
 - **FR7:** Het systeem houdt een lijst bij van eerder gelogde items zodat herhaald loggen met één tik kan.
 - **FR8:** De gebruiker kan een gelogd item bewerken of verwijderen.
@@ -371,7 +372,7 @@ Deze punten zijn bevestigd tijdens de bouw (waren eerder open aannames):
 1. **Platform:** PWA (web, mobile-first, installeerbaar). ✅ bevestigd.
 2. **Scope v1:** single-user, geen login/accounts. ✅ bevestigd. *Herzien bij publieke deployment: sinds de app publiek bereikbaar is (GitHub Pages/Render), is er een lichte toegangsgate toegevoegd — één vaste gebruikersnaam/wachtwoord (env-variabelen, geen users-tabel) die voorkomt dat willekeurige bezoekers van de URL kunnen loggen/wijzigen. Dit is geen multi-user-systeem (nog steeds precies één profiel/dataset) — puur een slot op de voordeur, zie [deployment.md](deployment.md).*
 3. **Tech stack:** React + TypeScript + Vite (PWA) + Tailwind; Fastify + TypeScript; Postgres via Prisma (Neon in productie, zie hieronder). ✅ bevestigd. *Productie-hostingdoel: GitHub Pages (frontend) + Render (backend) + Neon (database) — zie [architecture.md](architecture.md) §12 en [deployment.md](deployment.md).*
-4. **Voedingsbronnen:** combinatie van **Open Food Facts** (zoeken), **handmatig** (altijd terugval, offline), **AI-tekstschatting** (Claude) en later **AI-fotoschatting**. ✅ bevestigd. Handmatig is altijd de fallback.
+4. **Voedingsbronnen:** combinatie van **Open Food Facts** (zoeken), **handmatig** (altijd terugval, offline) en één gecombineerde AI-modus voor tekst, foto of beide. ✅ bevestigd. Handmatig is altijd de fallback.
 5. **AI-model:** Claude, server-side via proxy; instelbaar via env (`CALCOUNT_AI_MODEL`). ~~Default `claude-opus-4-8`~~ — **vervangen door beslissing 13 (v1.1): default is nu `claude-haiku-4-5`.** Nauwkeurigheid/kosten nog te valideren bij Epic 3.
 6. **Meeteenheden:** metriek (gram, kg, cm). ✅ bevestigd.
 7. **Gewicht → budget:** een nieuwe gewichtsmeting werkt het profielgewicht bij, dus TDEE/budget bewegen automatisch mee (FR11). ✅ bevestigd.
@@ -392,13 +393,13 @@ Deze punten zijn bevestigd tijdens de bouw (waren eerder open aannames):
 
 ---
 
-## 10. Herzien: Epic 3 (AI-fotoherkenning) heractiveerd (v1.1)
+## 10. Herzien: Epic 3 — gecombineerde AI-invoer (v1.3)
 
-Epic 3 werd met v1.1 heractiveerd en gedeeltelijk gebouwd: foto kiezen/comprimeren,
-`POST /api/photo/analyze`, gestructureerde AI-output en een read-only preview bestaan.
-Op 2026-07-24 heeft de opdrachtgever de verdere fotoflow geparkeerd ten gunste van
-Epics 5 en 6. Correctie/opslag (Stories 3.2–3.4) en de echte-maaltijdfoto-accuracy-check
-blijven open totdat Epic 3 opnieuw wordt geprioriteerd.
+Epic 3 is op 2026-07-24 afgerond als één standaard AI-logmodus. De gebruiker kan tekst,
+een foto of beide combineren, meerdere resultaten corrigeren en ze in één transactie
+opslaan. Foto-bytes leven alleen in browsergeheugen en de lopende AI-request; database
+en bestandssysteem bewaren uitsluitend de bevestigde voedingsitems. Een representatieve
+nauwkeurigheidsmeting met echte maaltijdfoto's blijft release-QA, geen functionele story.
 
 De rest van de v1.0-PRD (Goals, Requirements, UI, Epics 1/2/4) blijft ongewijzigd geldig; v1.1 voegde Epic 5 en 6 toe en v1.2 voegt Epic 7 toe.
 
@@ -422,22 +423,22 @@ De rest van de v1.0-PRD (Goals, Requirements, UI, Epics 1/2/4) blijft ongewijzig
 |---|---|---|
 | 1 — Fundament & Persoonlijk Caloriebudget | ✅ Gebouwd & geverifieerd | Profiel, TDEE/budget, één-getal-hoofdscherm |
 | 2 — Eten loggen & dagoverzicht | ✅ Gebouwd & geverifieerd | Zoeken (OFF), handmatig, AI-tekst, recent; dagtotaal; bewerken/verwijderen; dagnavigatie |
-| 3 — AI-fotoherkenning | ⏸️ Gedeeltelijk gebouwd, geparkeerd | Analyse + preview bestaan; correctie/opslag en accuracy-check open |
+| 3 — Gecombineerde AI-invoer | ✅ Gebouwd | Tekst/foto samen, correctie, confidence en atomaire multi-itemopslag zonder fotobewaring |
 | 4 — Voortgang & Bijsturen | ✅ Gebouwd & geverifieerd | Gewicht bijhouden, trendgrafiek + streefgewicht, auto-herberekening budget, doel bijstellen |
 | 5 — Motivatie & Gamification (licht) | ✅ Gebouwd | Streak, vaste tijdzone, permanente awards en tijdelijke popup |
 | 6 — AI-advies & Coach | ✅ Gebouwd | Wekelijkse snapshots en sessiegebaseerde coach met daglimiet |
 | 7 — Voedingsbalans | ✅ Gebouwd | Dagbalken, weekgemiddelde, macroverhouding en datadekking |
 
 **Productie:** GitHub Pages, Render en Neon zijn live. De nieuwe database-migraties zijn
-op Neon toegepast; de actuele design- en Epic 7-appcode wacht nog op de normale frontend/backenddeploy.
-Open productwerk bestaat uit de geparkeerde resterende Epic 3-stories.
+op Neon toegepast; de gecombineerde AI-/fotocode wacht op de normale frontend/backenddeploy.
+Er zijn geen functionele backlogstories meer; mobiele en productie-AI-controle blijven release-QA.
 
 Voor de volledige overdracht — hoe lokaal te draaien, repo-structuur, keuzes, openstaande punten — zie **[handoff.md](handoff.md)**.
 
-### Aanbevolen volgorde (v1.2)
+### Aanbevolen volgorde (v1.3)
 1. ~~Open beslissingen §9 bevestigen.~~ ✅ (inclusief v1.1-beslissingen 10–12)
 2. ~~Architectuurdocument actualiseren.~~ ✅
 3. ~~Definitief UX-/designdocument opstellen.~~ ✅ — zie [design.md](design.md).
-4. Epic 5/6-code deployen en de mobiele UX handmatig verifiëren (migraties zijn toegepast).
-5. Productiecontrole uitvoeren voor profielthema, badgepopup, inzichten en coachlimiet.
-6. Epic 3 geparkeerd houden totdat de opdrachtgever deze opnieuw prioriteert.
+4. ~~Epic 5/6/7-code deployen.~~ ✅
+5. Gecombineerde AI-invoer deployen en tekst/foto/combinatie in productie controleren.
+6. Mobiele camera-, galerij-, correctie- en dark-mode-QA uitvoeren.

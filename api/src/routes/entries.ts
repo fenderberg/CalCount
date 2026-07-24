@@ -105,6 +105,27 @@ export async function entryRoutes(app: FastifyInstance) {
     });
   });
 
+  // Meerdere AI-herkende onderdelen van één maaltijd atomair opslaan.
+  app.post('/api/entries/batch', async (req, reply) => {
+    if (!Array.isArray(req.body) || req.body.length === 0 || req.body.length > 20) {
+      return reply.code(400).send({ error: 'Verwacht 1 tot 20 items' });
+    }
+    let inputs;
+    try {
+      inputs = req.body.map((body) => parseEntryInput(body));
+    } catch (err) {
+      if (err instanceof ValidationError) return reply.code(400).send({ error: err.message });
+      throw err;
+    }
+    return prisma.$transaction(inputs.map((input) => prisma.foodEntry.create({
+      data: {
+        name: input.name!, source: input.source!, calories: input.calories!, grams: input.grams,
+        protein: input.protein, carbs: input.carbs, fat: input.fat, fiber: input.fiber,
+        isEstimate: input.isEstimate ?? false, loggedAt: input.loggedAt ?? new Date(),
+      },
+    })));
+  });
+
   // Item bewerken.
   app.patch('/api/entries/:id', async (req, reply) => {
     const { id } = req.params as { id: string };

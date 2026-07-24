@@ -7,9 +7,9 @@ inputDocuments: ["docs/prd.md", "docs/architecture.md"]
 
 ## Overview
 
-This document provides the epic and story breakdown for CalCount. Current priority
-(updated 2026-07-24): Epics 1, 2, 4 and 5 are complete; Epic 3 is partially implemented
-but parked; Epics 5, 6 and 7 are complete. Canonical current documentation lives in `docs/`.
+This document provides the epic and story breakdown for CalCount. Current status
+(updated 2026-07-24): Epics 1 through 7 are functionally complete. Canonical current
+documentation lives in `docs/`.
 
 ## Requirements Inventory
 
@@ -101,12 +101,12 @@ Gebruiker kan volledig (handmatig) tracken: loggen op gewicht/product/recent, da
 **FRs covered:** FR6, FR7, FR8, FR9, FR12, FR13
 **Status:** ✅ Gebouwd & geverifieerd (geen actie deze run)
 
-### Epic 3: AI-Fotoherkenning
-Gebruiker kan eten loggen door een foto te maken; AI schat het gerecht en de calorieën, gebruiker corrigeert en slaat op — elimineert handmatig zoeken/invoeren voor de meest voorkomende log-actie.
+### Epic 3: Gecombineerde AI-invoer
+Gebruiker logt via tekst, foto of beide; AI schat meerdere items, gebruiker corrigeert en slaat de maaltijd atomair op zonder de foto te bewaren.
 **FRs covered:** FR4, FR5
-**Status:** ⏸️ Gedeeltelijk gebouwd en geparkeerd — analyse + read-only preview bestaan;
-accuracy-check, correctie en opslag volgen later.
-**Standalone-check:** Bouwt voort op Epic 2's opslag-/correctie-UX (bestaand `POST /api/entries` met `source: 'photo'`) maar voegt een volledig zelfstandig nieuw pad toe (`POST /api/photo/analyze` + camera-UI); geen toekomstige epic is vereist om te functioneren.
+**Status:** ✅ Gebouwd — gecombineerde standaardmodus, correctie en multi-itemopslag afgerond.
+**Standalone-check:** Bouwt voort op Epic 2 en gebruikt `POST /api/foods/analyze` plus
+`POST /api/entries/batch`; geen andere epic is vereist om te functioneren.
 
 **Implementation Notes (uit party-mode-review — Mary, Winston, Sally, Amelia, John):**
 - **Eerst valideren, dan bouwen:** de nauwkeurigheid van `claude-haiku-4-5` op echte maaltijdfoto's staat sinds PRD v0.1 als open aanname en is nooit getest. Story 3.1 start met een expliciete, toetsbare AC: 15–20 echte foto's tegen het model draaien vóór de rest van de UI wordt afgebouwd.
@@ -135,7 +135,7 @@ Gebruiker ziet globaal of het gelogde eetpatroon in balans is, zonder exacte tra
 **Status:** ✅ Gebouwd — vier dagbalken, weekgemiddelde, macroverhouding, datadekking en rustig oordeel.
 
 **Dependency-opmerking:** Epic 6.1 gebruikt dezelfde vaste tijdzone/daggrenzen als Story
-5.1. Die basis is nu gebouwd. Epic 3 blijft functioneel onafhankelijk en geparkeerd.
+5.1. Die basis is nu gebouwd. Epic 3 is eveneens functioneel afgerond.
 
 ---
 
@@ -159,7 +159,7 @@ Gebruiker kan volledig (handmatig) tracken.
 
 Gebruiker kan eten loggen door een foto te maken; AI schat het gerecht en de calorieën, gebruiker corrigeert en slaat op.
 
-**FRs covered:** FR4, FR5 · **NFRs:** NFR3, NFR4, NFR7, NFR8 · **Status:** ⏸️ Gedeeltelijk gebouwd en geparkeerd
+**FRs covered:** FR4, FR5 · **NFRs:** NFR3, NFR4, NFR7, NFR8 · **Status:** ✅ Gebouwd
 
 ### Story 3.1: Foto maken en versturen
 

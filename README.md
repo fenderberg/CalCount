@@ -14,7 +14,7 @@ AI-ondersteunde calorietracker (mobile-first PWA).
 
 - **Epic 1 — Fundament & Persoonlijk Caloriebudget: ✅ gebouwd en geverifieerd.**
 - **Epic 2 — Eten loggen & dagoverzicht: ✅ gebouwd en geverifieerd.**
-- **Epic 3 — AI-fotoherkenning: ⏸️ geparkeerd** (analyse + read-only preview bestaan; corrigeren/opslaan en accuracy-check volgen later).
+- **Epic 3 — Gecombineerde AI-invoer: ✅ gebouwd** (tekst, foto of beide; correctie en multi-itemopslag zonder fotobewaring).
 - **Epic 4 — Voortgang & Bijsturen: ✅ gebouwd en geverifieerd.**
 - **Epic 5 — Motivatie & Gamification: ✅ gebouwd** (streak, permanente badge-awards en tijdelijke meldingen).
 - **Epic 6 — AI-advies & Coach: ✅ gebouwd** (wekelijkse snapshots en sessiegebaseerde coach).
@@ -62,8 +62,9 @@ Eten loggen via vier bronnen, met **handmatig altijd als terugval** (werkt offli
 
 1. **Zoeken** — echte producten uit Open Food Facts (kcal/100g), portie op gewicht.
 2. **Handmatig** — zelf naam + calorieën invoeren.
-3. **AI-tekstschatting** — omschrijf een portie, Claude schat de calorieën.
-4. **Recent** — eerder gelogde items met één tik opnieuw loggen.
+3. **AI-analyse (standaard)** — omschrijf een portie, voeg een foto toe of combineer
+   beide; controleer alle herkende items en sla ze samen op. Foto's worden niet bewaard.
+4. **Recent** — eerder gelogde items, ook uit een fotoanalyse, met één tik opnieuw loggen.
 
 Plus: dagtotaal + resterend budget (ring werkt live bij), items bewerken/verwijderen,
 en tussen dagen bladeren.
