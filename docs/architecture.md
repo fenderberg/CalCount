@@ -337,24 +337,24 @@ werkt profielgewicht bij zodat budget meebeweegt; streefgewicht optioneel.
 
 ---
 
-## 12. Deployment-doel (Netlify + Neon)
+## 12. Deployment-doel (GitHub Pages + Render + Neon)
 
-Voor productie draait CalCount serverless: **Netlify** (frontend + één Function) +
-**Neon** (managed Postgres). Reden: statische hosts kunnen de Node-backend niet draaien,
-en serverless vermijdt serverbeheer. (Neon i.p.v. Supabase omdat het gratis-projectlimiet
-bij Supabase al bereikt was — via Prisma maakt dit voor de code geen verschil, zie
-[deployment.md](deployment.md).)
+Voor productie: **GitHub Pages** (statische frontend) + **Render** (gewone Node-host
+voor de backend) + **Neon** (managed Postgres). Eerdere iteraties (Netlify Functions,
+en het losgelaten voorstel om Prisma door `@supabase/supabase-js` te vervangen) staan
+gedocumenteerd in [deployment.md](deployment.md) — de overstap naar Render kwam doordat
+Netlify's gratis-tier tegen een credit-limiet aanliep.
 
 Mapping (zoals daadwerkelijk geïmplementeerd — zie [deployment.md](deployment.md)):
 
 | Lokaal/dev | Productie |
 |---|---|
-| Fastify-server (`api/src/server.ts` roept `buildApp()` + `.listen()` aan) | Eén Netlify Function (`netlify/functions/api.ts`) wrapt dezelfde `buildApp()` met `aws-lambda-fastify`; `netlify.toml` redirect `/api/*` + `/health` |
-| Prisma + Postgres (lokaal én productie — geen SQLite meer) | Ongewijzigd; alleen `DATABASE_URL`/`DIRECT_URL` verschillen per omgeving |
-| `api/src/routes/*`, `api/src/services/*`, `packages/core` | Ongewijzigd hergebruikt — Prisma blijft de data-toegangslaag, geen provider-specifieke SDK |
-| Frontend | Ongewijzigd; roept nog steeds `/api/*` aan |
+| Fastify-server (`api/src/server.ts` roept `buildApp()` + `.listen()` aan) | Ongewijzigd — Render draait hetzelfde commando als een gewoon Node-proces (geen serverless-wrapper nodig) |
+| Prisma + Postgres (lokaal én productie) | Ongewijzigd; alleen `DATABASE_URL`/`DIRECT_URL` verschillen per omgeving |
+| `api/src/routes/*`, `api/src/services/*`, `packages/core` | Ongewijzigd hergebruikt |
+| Frontend | Bouwt naar `web/dist`, gepubliceerd op GitHub Pages; roept de backend via een **absolute** URL aan (`VITE_API_URL`) omdat frontend en backend nu op verschillende domeinen draaien |
 
 Secrets (`ANTHROPIC_API_KEY`, `DATABASE_URL`, `DIRECT_URL`) blijven server-side als
-env-variabelen; de frontend bevat geen sleutels. De repo-kant is geïmplementeerd; het
-aanmaken van het Neon-project en de Netlify-site zelf staat nog open — zie
+env-variabelen op Render; de frontend bevat geen sleutels. De repo-kant is
+geïmplementeerd; het aanmaken van de Render-service zelf staat nog open — zie
 **[deployment.md](deployment.md)** voor de precieze stappen en verificatie.

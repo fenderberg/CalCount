@@ -357,7 +357,7 @@ Deze punten zijn bevestigd tijdens de bouw (waren eerder open aannames):
 
 1. **Platform:** PWA (web, mobile-first, installeerbaar). ✅ bevestigd.
 2. **Scope v1:** single-user, geen login/accounts. ✅ bevestigd.
-3. **Tech stack:** React + TypeScript + Vite (PWA) + Tailwind; Fastify + TypeScript; Postgres via Prisma (Neon in productie, zie hieronder). ✅ bevestigd. *Productie-hostingdoel: Netlify + Neon — zie [architecture.md](architecture.md) §12 en [deployment.md](deployment.md).*
+3. **Tech stack:** React + TypeScript + Vite (PWA) + Tailwind; Fastify + TypeScript; Postgres via Prisma (Neon in productie, zie hieronder). ✅ bevestigd. *Productie-hostingdoel: GitHub Pages (frontend) + Render (backend) + Neon (database) — zie [architecture.md](architecture.md) §12 en [deployment.md](deployment.md).*
 4. **Voedingsbronnen:** combinatie van **Open Food Facts** (zoeken), **handmatig** (altijd terugval, offline), **AI-tekstschatting** (Claude) en later **AI-fotoschatting**. ✅ bevestigd. Handmatig is altijd de fallback.
 5. **AI-model:** Claude, server-side via proxy; instelbaar via env (`CALCOUNT_AI_MODEL`). ~~Default `claude-opus-4-8`~~ — **vervangen door beslissing 13 (v1.1): default is nu `claude-haiku-4-5`.** Nauwkeurigheid/kosten nog te valideren bij Epic 3.
 6. **Meeteenheden:** metriek (gram, kg, cm). ✅ bevestigd.
@@ -398,7 +398,7 @@ De rest van de v1.0-PRD (Goals, Requirements, UI, Epics 1/2/4) blijft ongewijzig
 | 5 — Motivatie & Gamification (licht) | 📝 Gepland (v1.1) | Streak + badges — zie §6 |
 | 6 — AI-advies & Coach | 📝 Gepland (v1.1) | Periodieke inzichten + interactieve coach — zie §6 |
 
-**Nog niet gedaan:** productie-deployment (repo-kant klaar voor Netlify + Neon — zie [deployment.md](deployment.md); Neon-project en Netlify-site zelf nog aan te maken); Epics 3, 5 en 6.
+**Nog niet gedaan:** productie-deployment (repo-kant klaar voor GitHub Pages + Render + Neon — zie [deployment.md](deployment.md); Render-service zelf nog aan te maken); Epics 3, 5 en 6.
 
 Voor de volledige overdracht — hoe lokaal te draaien, repo-structuur, keuzes, openstaande punten — zie **[handoff.md](handoff.md)**.
 

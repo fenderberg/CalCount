@@ -2,7 +2,11 @@ import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
-export default defineConfig({
+// GitHub Pages serves project sites from /<repo-name>/, not the domain root.
+const base = '/CalCount/';
+
+export default defineConfig(({ command }) => ({
+  base: command === 'build' ? base : '/',
   plugins: [
     react(),
     VitePWA({
@@ -14,7 +18,8 @@ export default defineConfig({
         theme_color: '#16a34a',
         background_color: '#ffffff',
         display: 'standalone',
-        start_url: '/',
+        start_url: base,
+        scope: base,
       },
     }),
   ],
@@ -25,4 +30,4 @@ export default defineConfig({
       '/health': 'http://localhost:3001',
     },
   },
-});
+}));

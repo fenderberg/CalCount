@@ -1,54 +1,50 @@
-# CalCount — Deployment (Netlify + Neon)
+# CalCount — Deployment (GitHub Pages + Render + Neon)
 
-> **Status: repo-kant geïmplementeerd, productie-koppeling nog niet uitgevoerd.** Dit
-> document beschrijft hoe CalCount online gaat met Netlify (frontend + één serverless
-> functie) en Neon (managed Postgres). De code in deze repo is al aangepast voor dit pad;
-> wat nog moet gebeuren is het aanmaken van het Neon-project en de Netlify-site zelf (zie
-> "Nog te doen" onderaan).
->
-> **Waarom Neon en niet Supabase:** functioneel identiek voor dit doel (beide zijn managed
-> Postgres met een pooled + directe connection string, prima gratis tier). Gekozen omdat
-> het gratis-projectlimiet bij Supabase al bereikt was. Prisma praat met beide providers
-> op exact dezelfde manier — mocht je later alsnog naar Supabase (of een andere Postgres-
-> host) willen, verandert er niets aan `api/prisma/schema.prisma` of de route-code, alleen
-> de connection strings.
+> **Status: repo-kant geïmplementeerd.** Frontend naar GitHub Pages (via GitHub Actions),
+> backend ongewijzigd (Fastify + Prisma) naar Render, database blijft Neon Postgres. Wat
+> nog moet gebeuren: de Render-service zelf aanmaken (browser-actie, zie "Nog te doen").
 
-## Waarom niet puur statische hosting
+## Voorgeschiedenis
 
-CalCount is full-stack. De frontend is statisch (kan op elke CDN), maar de backend
-(profielopslag, budget, eten zoeken, AI-proxy) heeft server-side logica en een database
-nodig. Statische hosts (GitHub Pages, de statische kant van Netlify) kunnen dat niet
-draaien. **Netlify Functions** (serverless) + **Neon** (managed Postgres) leveren die
-backend zonder dat je zelf een server beheert.
+Dit is de derde hosting-iteratie van dit project:
 
-## Gekozen aanpak: één functie, Fastify en Prisma ongewijzigd
+1. **Netlify + Supabase** (voorstel, nooit uitgevoerd) — losse Netlify Functions per
+   route + Prisma vervangen door `@supabase/supabase-js`. Losgelaten: te veel herschrijf-
+   werk voor een single-user hobby-app.
+2. **Netlify Functions + Neon** (uitgevoerd, werkte) — één Netlify Function
+   (`aws-lambda-fastify` wrapt de bestaande Fastify-app) + Neon Postgres via Prisma,
+   ongewijzigd. Werkte, maar liep na een tijdje tegen Netlify's gratis-credit-limiet aan.
+3. **GitHub Pages + Render + Neon** (huidig) — frontend naar GitHub Pages (vereist een
+   publieke repo, wat deze inmiddels is), backend **ongewijzigd** naar Render (een
+   gewone Node-host, geen serverless-wrapper nodig), Neon blijft de database.
 
-Een eerdere versie van dit document stelde voor om de vijf routebestanden te herschrijven
-tot losse Netlify Functions per endpoint én Prisma te vervangen door rechtstreekse
-provider-SDK-calls tegen een handmatig herschreven snake_case-schema. Dat is losgelaten:
-voor een single-user hobby-app levert dat alleen extra herschreef- en testwerk op zonder
-voordeel (geen verkeer dat per-route schaling nodig heeft). In plaats daarvan:
+**Overwogen alternatief (bewust niet gekozen):** de backend helemaal weglaten en de
+frontend rechtstreeks laten praten met Neon's ingebouwde Data API (PostgREST-achtige
+REST-laag op je tabellen). Dat vereist Row-Level Security-policies op elke tabel en een
+losse serverless functie alleen voor de Claude-aanroep (de AI-sleutel mag nooit in de
+browser staan — zie hieronder). Voor v1 is dat meer herbouwwerk dan de huidige Fastify-
+backend gewoon verhuizen; bewaard als optie voor als er ooit echte multi-user/login bij
+komt.
 
-- **Prisma blijft** — alleen het datasource-provider wisselt van `sqlite` naar
-  `postgresql` (`api/prisma/schema.prisma`). Alle route-code (`api/src/routes/*.ts`) en
-  services (`api/src/services/*.ts`) roepen nog steeds `prisma.<model>.<method>()` aan,
-  ongewijzigd. Dit maakt de keuze van Postgres-*provider* (Neon, Supabase, of iets anders)
-  een pure configuratiekeuze — geen coderisico.
-- **Eén Netlify Function**, niet zeven. De bestaande Fastify-app (nu in `api/src/app.ts`
-  als `buildApp()`, losgetrokken van de `.listen()`-call in `api/src/server.ts`) wordt in
-  `netlify/functions/api.ts` gewrapt met `aws-lambda-fastify`. Alle routes, validatie en
-  services worden zo volledig hergebruikt.
-- **`netlify.toml`** stuurt `/api/*` en `/health` door naar die ene functie, zonder het pad
-  te herschrijven — de frontend (`web/src/api.ts`) roept alles al relatief aan
-  (`/api/profile`, `/api/entries`, ...), dus die hoeft niet te veranderen.
+## Waarom de AI-sleutel altijd server-side moet blijven
+
+Een API-sleutel in frontend-JavaScript wordt met elke paginalading naar de browser van de
+bezoeker gestuurd — die is dus voor iedereen die de bundel opent te vinden en te
+misbruiken (op jouw rekening). Claude's API zelf kan niet zien of een verzoek van je
+eigen app komt of van iemand die de sleutel heeft gejat; hij ziet alleen "geldige sleutel,
+verzoek uitvoeren". Daarom blijft de backend een **AI-proxy**: de frontend praat met
+`/api/foods/estimate` (eigen server), en alléén die server — met de sleutel als
+env-variabele, nooit in client-code — praat met Claude.
 
 ## Doelarchitectuur
 
 ```
-Browser (PWA)
-   │  /api/*  en  /health
+Browser (PWA, GitHub Pages)
+   │  https://fenderberg.github.io/CalCount/
+   │
+   │  VITE_API_URL (absolute URL, want andere origin dan de frontend)
    ▼
-Netlify (CDN: web/dist  +  netlify/functions/api.ts = de hele Fastify-app)
+Render (Node-host: Fastify-server, ongewijzigd t.o.v. lokale dev)
    │            │  ANTHROPIC_API_KEY (env)
    │            ▼
    │        Claude API (AI-tekst/foto-schatting)
@@ -60,119 +56,90 @@ Neon Postgres  ◀── DATABASE_URL (pooled, runtime) / DIRECT_URL (direct, mi
 
 | Nu (lokaal) | Straks (deploy) |
 |---|---|
-| `tsx src/server.ts` (luistert op :3001) | `netlify/functions/api.ts` (`aws-lambda-fastify` wrapt `buildApp()`) |
-| Prisma + SQLite (`file:./dev.db`) | Prisma + Neon Postgres (`DATABASE_URL`/`DIRECT_URL`) |
-| `api/src/routes/*.ts`, `api/src/services/*.ts` | **Ongewijzigd hergebruikt** |
+| `tsx src/server.ts` (luistert op :3001) | Zelfde commando, draait als Render Web Service (Render zet zelf `PORT`) |
+| Prisma + Neon Postgres | Ongewijzigd — zelfde `DATABASE_URL`/`DIRECT_URL` |
+| `api/src/routes/*.ts`, `api/src/services/*.ts` | **Ongewijzigd hergebruikt** — geen serverless-wrapper nodig, Render draait een gewoon Node-proces |
 | `packages/core` (rekenlogica) | **Ongewijzigd hergebruikt** |
-| Frontend `web/` | **Ongewijzigd**; blijft `/api/*` en `/health` aanroepen (redirects regelen de rest) |
+| Frontend `web/` | Bouwt naar `web/dist`, gepubliceerd op GitHub Pages; roept de backend nu via een **absolute** URL aan (zie `VITE_API_URL`) i.p.v. relatieve `/api/*`-paden, omdat frontend en backend nu op verschillende domeinen draaien |
 
 ## Wat al in de repo staat
 
-- `api/src/app.ts` — `buildApp()`, de Fastify-app zonder `.listen()`.
-- `api/src/server.ts` — dunne lokale-dev-entrypoint die `buildApp()` aanroept en
-  `.listen()` doet (ongewijzigd gedrag voor `npm run dev:api`).
-- `api/prisma/schema.prisma` — `datasource db` nu `postgresql` met `url`/`directUrl` uit
-  env, plus `binaryTargets` voor de Lambda-runtime. Provider-agnostisch: werkt met Neon,
-  Supabase, of elke andere Postgres, zonder aanpassing.
-- `netlify/functions/api.ts` — de ene functie; cachet de opgebouwde Fastify-proxy op
-  moduleniveau zodat een warme container 'm hergebruikt (geen her-bouwen of
-  `$disconnect()` per request — dat zou de Prisma-singleton in `api/src/db.ts` juist
-  minder effectief maken).
-- `netlify.toml` — redirects + build-config (zie hieronder).
-- `api/package.json` — `postinstall: prisma generate` (zorgt dat zowel lokaal als bij de
-  Netlify-build de Prisma-client met het juiste binary target wordt gegenereerd),
-  `db:deploy: prisma migrate deploy` (voor het toepassen van migraties op de
-  productie-database, aangeroepen vanuit `netlify.toml`'s `build.command`); Prisma is
-  opgehoogd van 5.22 naar 6.19 (geen functionele noodzaak gebleken, maar wel de nieuwste
-  stabiele 6.x — zie de kanttekening hieronder over wat het *echte* probleem bleek te zijn).
-- Root `package.json` — de nieuwe dependencies `aws-lambda-fastify` en
-  `@netlify/functions` (horen bij `netlify/functions/api.ts`, dat buiten de `api`-workspace
-  valt), plus een root `tsconfig.json` zodat die functie los te typecheck en is.
-- `.gitignore` — `.env`/`.env.*` toegevoegd (ontbrak eerder; nodig zodra er echte
-  connection strings/sleutels lokaal bijkomen).
-- `api/prisma/migrations/20260723094159_init/` — de oude SQLite-migraties zijn verwijderd
-  (niet compatibel met Postgres); deze verse Postgres-migratie is gegenereerd via
-  `prisma migrate diff --from-empty --to-schema-datamodel` (puur uit het schema, zonder
-  een databaseverbinding nodig te hebben) en al gecommit. Ze wordt pas daadwerkelijk
-  *toegepast* tijdens de eerste Netlify-build (zie Stap 2 en `netlify.toml`'s
-  `build.command`).
-  > **Wat er echt mis was (leerpunt):** de eerste poging om te migreren gaf op zowel de
-  > ontwikkelmachine als in Netlify's build een generieke `P1001: Can't reach database
-  > server`. Na uitgebreid uitsluiten van netwerk-/firewall-/IPv6-oorzaken bleek de
-  > werkelijke fout veel simpeler: één teken fout overgetypt uit een screenshot van de
-  > Neon-connection-string (`a5vi2l48` i.p.v. `asvi2l48` in de endpoint-hostnaam). DNS en
-  > de TLS-handshake slaagden alsnog (wildcard-certificaat + gedeelde regionale IP's dekken
-  > élke subdomeinnaam), maar Neon's proxy kon de niet-bestaande endpoint-id niet naar een
-  > echte compute routeren, wat zich als een connectie-timeout/`P1001` uitte in plaats van
-  > een duidelijke "endpoint niet gevonden"-fout. Met de juiste hostnaam werkt gewone
-  > Prisma over een normale TCP-verbinding gewoon — zowel lokaal als vanuit Netlify's
-  > build. **Praktische les:** kopieer connection strings altijd als tekst (Neon's "Copy
-  > snippet"-knop), nooit overtypen vanaf een screenshot.
+- `web/src/api.ts` — alle fetch-calls gebruiken nu `${API_BASE}${path}`, met
+  `API_BASE = import.meta.env.VITE_API_URL ?? ''`. Lokaal (`npm run dev:web`) blijft dit
+  leeg, dus de bestaande Vite dev-proxy naar `localhost:3001` werkt ongewijzigd.
+- `web/vite.config.ts` — `base: '/CalCount/'` bij een build (GitHub Pages serveert een
+  project-repo vanaf `/<repo-naam>/`, niet vanaf de domeinroot); PWA-manifest
+  `start_url`/`scope` volgen dezelfde base. Dev-server blijft op `/`.
+- `.github/workflows/pages.yml` — bouwt bij elke push naar `main` (`npm run build:web`
+  met `VITE_API_URL` uit de repo-variabele van dezelfde naam) en publiceert `web/dist`
+  naar GitHub Pages via de officiële `actions/deploy-pages`-actie.
+- GitHub Pages staat al aan (`build_type: workflow`, publieke URL
+  `https://fenderberg.github.io/CalCount/`) en de repo-variabele `VITE_API_URL` staat al
+  op `https://calcount-api.onrender.com` (pas aan als je service-naam op Render anders
+  uitpakt — zie Stap 2).
+- `render.yaml` — Blueprint voor de backend: `buildCommand: npm install && npm run
+  db:deploy -w api` (past migraties toe bij elke deploy, net als voorheen bij Netlify),
+  `startCommand: npm run start -w api` (draait `api/src/server.ts` gewoon met
+  `.listen()` — geen serverless-aanpassing nodig omdat Render, in tegenstelling tot
+  Netlify Functions, een persistent Node-proces draait).
+- `api/prisma/schema.prisma` — `binaryTargets` (die specifiek voor de Lambda-runtime van
+  Netlify Functions nodig was) verwijderd; Render bouwt en draait in dezelfde omgeving,
+  dus het default `native`-target volstaat.
+- Repo is **publiek** gezet (vereiste voor gratis GitHub Pages). Gecontroleerd: er heeft
+  nooit een echte `.env`/sleutel in de geschiedenis gestaan, alleen `api/.env.example`.
+- Netlify-specifieke bestanden verwijderd (`netlify.toml`, `netlify/`,
+  `aws-lambda-fastify`/`@netlify/functions`-dependencies, het root-`tsconfig.json` dat
+  alleen voor de Netlify Function was).
 
-## Nog te doen (vereist accounts/dashboard-acties)
+## Nog te doen (vereist een browser-actie op Render)
 
-### Stap 1 — Neon-project aanmaken
+### Stap 1 — Render-account + Blueprint
 
-Maak een project aan op [neon.tech](https://neon.tech) (gratis tier). Neon geeft in het
-dashboard (Connection Details) een connection string met een `-pooler` in de hostnaam voor
-de pooled/serverless-verbinding, en dezelfde host zónder `-pooler` voor de directe
-verbinding:
+1. Ga naar [render.com](https://render.com) en log in (GitHub-login kan direct).
+2. **New → Blueprint** → kies de `fenderberg/CalCount`-repo. Render leest `render.yaml`
+   en stelt de `calcount-api`-service voor.
+3. Vul de secrets in wanneer gevraagd (of erna via Environment):
 
-- **Pooled** (bevat `-pooler` in de hostnaam) → wordt `DATABASE_URL`. Voeg
-  `&pgbouncer=true&connection_limit=1` toe aan de querystring (naast het al aanwezige
-  `sslmode=require`) — dit is de door Prisma aanbevolen instelling voor serverless.
-- **Direct** (zonder `-pooler`) → wordt `DIRECT_URL` (alleen voor migraties).
+   | Variabele | Waarde |
+   |---|---|
+   | `DATABASE_URL` | pooled Neon-connection string |
+   | `DIRECT_URL` | directe Neon-connection string |
+   | `ANTHROPIC_API_KEY` | je Claude-sleutel |
+   | `CALCOUNT_AI_MODEL` | optioneel, bv. `claude-haiku-4-5` |
+   | `CALCOUNT_AI_PHOTO_MODEL` | optioneel, valt terug op `CALCOUNT_AI_MODEL` |
 
-### Stap 2 — Netlify-site koppelen (dit past ook meteen de migratie toe)
+4. Deploy. Render geeft de service-URL (verwacht: `https://calcount-api.onrender.com`,
+   tenzij die naam al bezet is — dan krijg je een variant met een suffix).
 
-De site (`calcount-fenderberg`, https://calcount-fenderberg.netlify.app) is al aangemaakt
-via `netlify-cli` (team `fenderberg`/"TAP"), en de vier env-variabelen (`DATABASE_URL`,
-`DIRECT_URL`, `ANTHROPIC_API_KEY`, `CALCOUNT_AI_MODEL`) staan er al op (via
-`netlify env:set --secret`). Wat nog moet:
+### Stap 2 — URL kloppend maken (alleen als de Render-URL afwijkt)
 
-1. Netlify-dashboard → `calcount-fenderberg` → Project configuration → Build & deploy →
-   Continuous deployment → **Link repository** → GitHub → autoriseren indien gevraagd →
-   kies `fenderberg/CalCount`. Dit vereist een browser-actie (GitHub-autorisatie) en kan
-   niet via de CLI.
-2. Build-instellingen komen automatisch uit `netlify.toml`. Trigger een deploy (gebeurt
-   meestal automatisch zodra de koppeling actief is).
-
-### Stap 3 — Lokaal testen met `netlify dev` (optioneel)
-
-`netlify-cli` staat al globaal geïnstalleerd. Met dezelfde env-variabelen in een
-root-`.env` (gitignored):
+Als de werkelijke Render-URL afwijkt van `https://calcount-api.onrender.com`:
 
 ```bash
-npm run build:web
-npx netlify dev
+gh variable set VITE_API_URL --body "https://<jouw-service>.onrender.com" --repo fenderberg/CalCount
 ```
 
-Dit draait `netlify/functions/api.ts` lokaal via dezelfde esbuild/Lambda-emulatie als
-productie — het beste moment om een bundel- of Prisma-binary-probleem te ontdekken vóór
-een echte deploy.
+Dan een nieuwe Pages-build triggeren (nieuwe push, of handmatig via Actions-tab →
+"Deploy frontend to GitHub Pages" → Run workflow).
+
+### Kanttekening: koude start
+
+Render's gratis tier zet de service in slaap na inactiviteit; het eerste verzoek daarna
+duurt een paar seconden extra terwijl 'm wakker wordt. Voor een single-user hobby-app is
+dat een acceptabele afweging tegen de gratis prijs.
 
 ## Verificatie na deploy
 
-1. `curl https://<site>.netlify.app/health` → `{"status":"ok"}` (redirect + functie werkt).
-2. `curl https://<site>.netlify.app/api/profile` → `404 {"error":"Nog geen profiel ingesteld"}`
-   (bevestigt dat de Postgres-verbinding werkt, niet alleen dat de functie opstart).
-3. Doorloop de onboarding in de browser, log een item via Zoeken (test de Open Food
-   Facts-call + `FoodReference`-cache) en via AI-tekstschatting (test `ANTHROPIC_API_KEY`
-   vanuit de Netlify-functie).
-4. Neon-dashboard → Tables → controleer dat `Profile`/`FoodEntry`/`WeightEntry`/
-   `FoodReference` bestaan met de verwachte kolommen.
-5. Netlify-dashboard → Functions → `api` → logs controleren op de eerste requests (geen
-   "cannot find module", geen Prisma "engine not found" — dat zou op een verkeerd
-   `binaryTargets`/`included_files` wijzen).
-6. Netlify-dashboard → Deploys → build log van de eerste deploy: controleer dat
-   `npm run db:deploy -w api` zonder fouten liep.
-7. `npx prisma migrate status --schema=api/prisma/schema.prisma` (met `DIRECT_URL` gezet)
-   → "Database schema is up to date".
-
-## Alternatief: alles op één Node-host
-
-Wil je toch geen serverless functies, host dan het geheel op een Node-host met
-persistente opslag (Render, Railway, Fly.io — gratis tier, eigen account nodig). De
-Fastify-server (`api/src/server.ts`) kan dan ook de gebouwde frontend serveren. Nadeel
-t.o.v. Netlify+Neon: je beheert een server en moet zelf voor SQLite een persistent volume
-regelen (of alsnog naar Postgres migreren, zoals hierboven).
+1. `curl https://calcount-api.onrender.com/health` → `{"status":"ok"}`.
+2. `curl https://calcount-api.onrender.com/api/profile` → je bestaande profiel (de Neon-
+   database heeft al echte data uit de vorige Netlify-periode).
+3. Open `https://fenderberg.github.io/CalCount/` in de browser → moet het bestaande
+   profiel tonen (bevestigt dat `VITE_API_URL` goed staat en CORS werkt — Fastify's
+   `@fastify/cors` staat al op `origin: true`, dus geen wijziging nodig).
+4. Log een item via Zoeken en via AI-tekstschatting om end-to-end te bevestigen dat de
+   browser (ander domein dan de backend) succesvol met Render praat.
+5. GitHub → Actions-tab → controleer dat de "Deploy frontend to GitHub Pages"-workflow
+   groen is.
+6. Render-dashboard → Logs → controleer dat `npm run db:deploy -w api` zonder fouten
+   liep bij de deploy (migraties zijn al toegepast vanuit de Netlify-periode, dus dit
+   zou een no-op moeten zijn — "No pending migrations").

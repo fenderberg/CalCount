@@ -8,8 +8,13 @@ export interface StoredProfile extends UserProfile {
 
 export type DayBudget = DaySummary & { date: string };
 
+// Op GitHub Pages draait de frontend los van de backend (Render), dus moet
+// /api/* naar een absolute URL. Lokaal (npm run dev:web) blijft dit leeg —
+// Vite's dev-proxy handelt relatieve /api/*-paden dan af (zie vite.config.ts).
+const API_BASE = import.meta.env.VITE_API_URL ?? '';
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(path, {
+  const res = await fetch(`${API_BASE}${path}`, {
     headers: { 'Content-Type': 'application/json' },
     ...init,
   });
@@ -145,7 +150,7 @@ export function updateEntry(
 }
 
 export async function deleteEntry(id: string): Promise<void> {
-  await fetch(`/api/entries/${id}`, { method: 'DELETE' });
+  await fetch(`${API_BASE}/api/entries/${id}`, { method: 'DELETE' });
 }
 
 // ---- Epic 4: gewicht & voortgang ----
@@ -178,5 +183,5 @@ export function updateWeight(
 }
 
 export async function deleteWeight(id: string): Promise<void> {
-  await fetch(`/api/weights/${id}`, { method: 'DELETE' });
+  await fetch(`${API_BASE}/api/weights/${id}`, { method: 'DELETE' });
 }

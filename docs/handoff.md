@@ -9,8 +9,8 @@ CalCount is een **mobile-first PWA** (React + Vite) met een **Fastify-backend** 
 Postgres/Neon in productie, via Prisma) die als AI-proxy dient. Het is een
 AI-ondersteunde calorietracker: profiel → dagbudget → eten loggen → gewicht volgen.
 **Epics 1, 2 en 4 zijn gebouwd en end-to-end geverifieerd.** Epic 3 (AI-fotoherkenning) is
-uitgesteld. De repo is voorbereid voor Netlify + Neon (zie [deployment.md](deployment.md));
-het Neon-project/Netlify-site zelf zijn nog niet aangemaakt.
+uitgesteld. De repo is voorbereid voor GitHub Pages + Render + Neon (zie
+[deployment.md](deployment.md)); de Render-service zelf is nog niet aangemaakt.
 
 Documenten: [prd.md](prd.md) (wat & waarom) · [architecture.md](architecture.md) (hoe) ·
 [deployment.md](deployment.md) (online zetten) · dit bestand (overdracht).
@@ -82,8 +82,8 @@ CalCount/
 │     ├─ validation.ts       Invoervalidatie profiel
 │     ├─ routes/             profile · budget · entries · foods · weights
 │     └─ services/           openFoodFacts.ts · aiEstimate.ts (Claude, degradeert zonder key)
-├─ netlify/functions/api.ts  Netlify Function: wrapt buildApp() met aws-lambda-fastify
-├─ netlify.toml               Build + redirects (/api/*, /health → de functie)
+├─ render.yaml               Render Blueprint: buildCommand/startCommand voor de backend
+├─ .github/workflows/pages.yml  Bouwt web/dist en publiceert naar GitHub Pages
 └─ web/                      React + Vite PWA
    └─ src/
       ├─ api.ts              Fetch-client naar de backend
@@ -119,10 +119,11 @@ De app werkt out-of-the-box zonder configuratie, behalve de AI-tekstschatting:
 | Variabele | Waar | Nodig voor | Default |
 |---|---|---|---|
 | `ANTHROPIC_API_KEY` | backend-omgeving | AI-tekstschatting (Epic 2) en later AI-foto (Epic 3) | — (feature degradeert netjes zonder) |
-| `CALCOUNT_AI_MODEL` | backend-omgeving | AI-model kiezen | `claude-opus-4-8` (bv. `claude-haiku-4-5` voor lagere kosten) |
+| `CALCOUNT_AI_MODEL` | backend-omgeving | AI-model kiezen | `claude-haiku-4-5` |
+| `CALCOUNT_AI_PHOTO_MODEL` | backend-omgeving | Apart model voor AI-fotoherkenning (Epic 3) | valt terug op `CALCOUNT_AI_MODEL` |
 | `PORT` | backend-omgeving (lokaal) | Poort backend bij `npm run dev:api` | `3001` |
-| `DATABASE_URL` | backend-omgeving / Netlify | Postgres-verbinding (pooled, runtime) — alleen nodig als je tegen Neon draait i.p.v. lokale SQLite | — |
-| `DIRECT_URL` | backend-omgeving / Netlify | Postgres-verbinding (direct, alleen voor `prisma migrate`) | — |
+| `DATABASE_URL` | backend-omgeving / Render | Postgres-verbinding (pooled, runtime) naar Neon | — |
+| `DIRECT_URL` | backend-omgeving / Render | Postgres-verbinding (direct, alleen voor `prisma migrate`) | — |
 
 Zie `api/.env.example`. Zet nooit een echte sleutel in de repo.
 
@@ -148,17 +149,15 @@ Deze zijn met de opdrachtgever bevestigd tijdens de bouw:
 - **AI-tekstschatting** vereist `ANTHROPIC_API_KEY`; zonder sleutel toont de UI een nette uitleg en verwijst naar Zoeken/Handmatig.
 - **Open Food Facts** heeft wisselende latency; de zoekopdracht heeft een time-out van 12s en valt terug op de lokale cache. Handmatig invoeren werkt altijd.
 - **Web-bundle ~595 KB** door de grafiek-library (Recharts). Prima, maar code-splitting (grafiek lazy laden) is een nette latere optimalisatie.
-- **SQLite** is prima voor single-user lokaal, maar op veel serverless/ephemeral hosts is de opslag vluchtig — vandaar de overstap bij deployment naar Neon (Postgres) (zie [deployment.md](deployment.md)).
-- **Model-default is `claude-opus-4-8`**; voor kosten kun je `CALCOUNT_AI_MODEL=claude-haiku-4-5` zetten en valideren.
+- **Render's gratis tier slaapt na inactiviteit** — het eerste verzoek na een tijdje duurt een paar seconden extra terwijl de service wakker wordt. Acceptabel voor een single-user hobby-app.
 
 ## Openstaande punten & aanbevolen volgende stappen
 
 1. **GitHub-push.** ✅ Gedaan — de repo staat op `github.com/fenderberg/CalCount`.
-2. **Productie-deployment.** Repo-kant klaar voor Netlify + Neon (zie
-   [deployment.md](deployment.md)): Prisma-schema op `postgresql`, `netlify.toml`, één
-   Netlify Function (`netlify/functions/api.ts`) die de bestaande Fastify-app hergebruikt.
-   Nog te doen: het Neon-project en de Netlify-site zelf aanmaken, env-variabelen
-   invullen, eerste migratie draaien tegen de echte database, en verifiëren (checklist in
-   deployment.md).
+2. **Productie-deployment.** Repo-kant klaar voor GitHub Pages + Render + Neon (zie
+   [deployment.md](deployment.md)): frontend bouwt en publiceert automatisch naar GitHub
+   Pages via `.github/workflows/pages.yml`; backend blijft ongewijzigd Fastify/Prisma,
+   klaar om via `render.yaml` op Render te draaien. Nog te doen: de Render-service zelf
+   aanmaken (browser-actie, env-variabelen invullen) — zie deployment.md.
 3. **Epic 3 — AI-fotoherkenning.** Contract staat in [architecture.md §5](architecture.md); vereist een `ANTHROPIC_API_KEY`. De log-flow en het datamodel zijn er al op voorbereid (de `photo`-bron bestaat).
 4. **Optioneel (buiten PRD-scope):** barcodescanner, water/macro's, wearable-koppeling, multi-user + login.

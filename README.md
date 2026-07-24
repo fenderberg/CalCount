@@ -7,7 +7,7 @@ AI-ondersteunde calorietracker (mobile-first PWA).
 - **[docs/handoff.md](docs/handoff.md)** — lees dit eerst als je het project oppakt (staat, draaien, keuzes, openstaande punten).
 - [docs/prd.md](docs/prd.md) — product requirements (wat & waarom).
 - [docs/architecture.md](docs/architecture.md) — technische architectuur (hoe).
-- [docs/deployment.md](docs/deployment.md) — online zetten (Netlify + Neon; repo-kant klaar, account-koppeling nog te doen).
+- [docs/deployment.md](docs/deployment.md) — online zetten (GitHub Pages + Render + Neon; repo-kant klaar, Render-service nog aan te maken).
 
 ## Status
 

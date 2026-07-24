@@ -326,8 +326,9 @@ function AiTab({ onPick }: { onPick: (d: Draft) => void }) {
 }
 
 // ---- Foto-herkenning (Epic 3, Story 3.1) ----
-// Compressie is verplicht vóór upload: de Netlify Function-laag heeft een eigen
-// ~6MB-payloadplafond en base64 blaast de bestandsgrootte ~33% op.
+// Compressie vóór upload: base64 blaast de bestandsgrootte ~33% op, en de
+// backend heeft een bodyLimit van 10MB (api/src/app.ts) — comprimeren houdt
+// uploads ruim daaronder en scheelt mobiele data/snelheid.
 const PHOTO_MAX_DIMENSION = 1024;
 const PHOTO_JPEG_QUALITY = 0.8;
 

@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: calcount-api
+    runtime: node
+    plan: free
+    region: frankfurt
+    buildCommand: npm install && npm run db:deploy -w api
+    startCommand: npm run start -w api
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: DATABASE_URL
+        sync: false
+      - key: DIRECT_URL
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: CALCOUNT_AI_MODEL
+        sync: false
+      - key: CALCOUNT_AI_PHOTO_MODEL
+        sync: false
