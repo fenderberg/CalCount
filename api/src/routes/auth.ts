@@ -8,7 +8,18 @@ export async function authRoutes(app: FastifyInstance) {
     const password = typeof body?.password === 'string' ? body.password : '';
 
     if (!checkCredentials(username, password)) {
-      return reply.code(401).send({ error: 'Onjuiste gebruikersnaam of wachtwoord' });
+      // TIJDELIJK diagnostisch (geen secrets, alleen lengtes) — wordt na
+      // troubleshooting weer verwijderd.
+      return reply.code(401).send({
+        error: 'Onjuiste gebruikersnaam of wachtwoord',
+        debug: {
+          receivedUserLen: username.length,
+          receivedPassLen: password.length,
+          expectedUserLen: (process.env.AUTH_USERNAME ?? '').length,
+          expectedPassLen: (process.env.AUTH_PASSWORD ?? '').length,
+          hasSecret: Boolean(process.env.AUTH_SECRET),
+        },
+      });
     }
 
     reply.header('set-cookie', sessionCookieHeader(createSessionToken()));
