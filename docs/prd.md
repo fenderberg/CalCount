@@ -151,7 +151,9 @@ Web Responsive, mobile-first (primair smartphone-portret). Desktop is niet in sc
 - **AI-fotoherkenning, -inzichten en -coach:** een Claude-model dat de foto (Epic 3) of de tekstcontext (Epic 6) omzet naar een gestructureerde schatting/antwoord via een prompt die JSON/tekst teruggeeft. **Default model: `claude-haiku-4-5`** (kostenefficiëntie, v1.1-beslissing — zie §9 beslissing 13, vervangt de eerdere `claude-opus-4-8`-default uit v1.0 §9 beslissing 5). *(Aanname — nauwkeurigheid van Haiku 4.5 op foto's en advies te valideren tijdens de bouw van Epic 3/6; opschalen naar `claude-sonnet-5` blijft de aanbevolen stap als nauwkeurigheid tegenvalt.)*
 - **Voedingsdatabase:** voor handmatig loggen op gewicht een caloriereferentie per 100 g. Opties: publieke dataset (bijv. Open Food Facts) of AI-geschatte referentie. *(Aanname — bron te kiezen.)*
 - **Authenticatie:** single-user toegangsgate met vaste env-geconfigureerde credentials en
-  een ondertekende sessiecookie; multi-useraccounts blijven toekomstig.
+  een ondertekend stateless sessietoken. De browser gebruikt bearer-auth omdat cross-site
+  cookies tussen GitHub Pages en Render niet overal worden geaccepteerd; multi-useraccounts
+  blijven toekomstig.
 
 ---
 

@@ -20,20 +20,28 @@ export async function buildApp() {
   // (Story 3.1, Epic 3) overschrijdt dat vrijwel altijd.
   const app = Fastify({ logger: true, bodyLimit: 10 * 1024 * 1024 });
 
-  // credentials: true nodig omdat frontend (GitHub Pages) en backend (Render)
-  // verschillende origins zijn — de sessie-cookie moet cross-origin meegestuurd
-  // kunnen worden (zie web/src/api.ts's `credentials: 'include'`).
-  await app.register(cors, { origin: true, credentials: true });
+  // Credentials blijft aan voor de cookievariant. Browsers die cross-site cookies
+  // blokkeren gebruiken daarnaast de Authorization Bearer-fallback.
+  await app.register(cors, {
+    origin: true,
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  });
 
   // Health-check (Story 1.1) — blijft open, ook voor Render's eigen health-check.
   app.get('/health', async () => ({ status: 'ok' }));
 
   // Simpele single-user login (vaste username/wachtwoord uit env, zie
-  // services/auth.ts). Alles hieronder vereist een geldige sessie-cookie.
+  // services/auth.ts). Alles hieronder vereist een geldige cookie- of bearer-sessie.
   app.addHook('onRequest', async (req, reply) => {
     const path = req.url.split('?')[0];
     if (PUBLIC_PATHS.has(path)) return;
-    const token = parseCookie(req.headers.cookie, 'session');
+    const cookieToken = parseCookie(req.headers.cookie, 'session');
+    const authorization = req.headers.authorization;
+    const bearerToken = authorization?.startsWith('Bearer ')
+      ? authorization.slice('Bearer '.length)
+      : undefined;
+    const token = cookieToken ?? bearerToken;
     if (!verifySessionToken(token)) {
       return reply.code(401).send({ error: 'Niet ingelogd' });
     }

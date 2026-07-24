@@ -6,7 +6,8 @@
 
 CalCount is een mobile-first React/Vite-PWA met een Fastify-backend en Prisma/Postgres
 op Neon. GitHub Pages en Render zijn live. De app is single-user met een eenvoudige
-login-gate uit omgevingsvariabelen.
+login-gate uit omgevingsvariabelen. De browser gebruikt een ondertekend bearer-token als
+betrouwbare cross-origin sessie; een HttpOnly-cookie blijft als compatibiliteitsroute.
 
 | Epic | Status | Actuele functionaliteit |
 |---|---|---|
@@ -126,8 +127,8 @@ items direct mee en herberekent verwijderen automatisch.
 | `DATABASE_URL` | Pooled Postgres-verbinding voor runtime |
 | `DIRECT_URL` | Directe Postgres-verbinding voor migraties |
 | `AUTH_USERNAME`, `AUTH_PASSWORD` | Login-gate |
-| `AUTH_SECRET` | HMAC-ondertekening sessiecookie |
-| `COOKIE_SECURE` | `true` in productie voor cross-origin cookie |
+| `AUTH_SECRET` | HMAC-ondertekening stateless sessietoken |
+| `COOKIE_SECURE` | `true` in productie voor de aanvullende cross-origin cookie |
 | `ANTHROPIC_API_KEY` | AI-tekst, foto, inzichten en coach |
 | `CALCOUNT_AI_MODEL` | Default `claude-haiku-4-5` |
 | `CALCOUNT_AI_PHOTO_MODEL` | Optionele foto-override |
@@ -143,6 +144,8 @@ items direct mee en herberekent verwijderen automatisch.
 - Fotoherkenning wordt niet verder afgebouwd totdat Epic 3 opnieuw wordt geprioriteerd.
 - AI-coachgesprekken worden alleen in de browsersessie onthouden, niet persistent.
 - Render free tier kan na inactiviteit een koude start hebben.
+- Login retourneert een bearer-token voor browsers die de GitHub Pages → Render-cookie
+  blokkeren; de frontend wist dit token bij 401 of uitloggen.
 
 ## Volgende stappen
 

@@ -12,14 +12,19 @@ export type DayBudget = DaySummary & { date: string };
 // /api/* naar een absolute URL. Lokaal (npm run dev:web) blijft dit leeg —
 // Vite's dev-proxy handelt relatieve /api/*-paden dan af (zie vite.config.ts).
 const API_BASE = import.meta.env.VITE_API_URL ?? '';
+const AUTH_TOKEN_KEY = 'calcount-session';
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const headers = new Headers(init?.headers);
+  if (!headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
+  const token = localStorage.getItem(AUTH_TOKEN_KEY);
+  if (token) headers.set('Authorization', `Bearer ${token}`);
   const res = await fetch(`${API_BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
-    // Nodig voor de sessie-cookie: frontend/backend zijn andere origins
-    // (GitHub Pages / Render) zodra VITE_API_URL absoluut is.
-    credentials: 'include',
     ...init,
+    headers,
+    // Cookie voor compatibele browsers; Authorization is de betrouwbare fallback
+    // wanneer GitHub Pages → Render als third-party cookie wordt geblokkeerd.
+    credentials: 'include',
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
@@ -27,8 +32,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       status?: number;
     };
     err.status = res.status;
+    if (res.status === 401) localStorage.removeItem(AUTH_TOKEN_KEY);
     throw err;
   }
+  if (res.status === 204) return undefined as T;
   return res.json() as Promise<T>;
 }
 
@@ -223,7 +230,7 @@ export function updateEntry(
 }
 
 export async function deleteEntry(id: string): Promise<void> {
-  await fetch(`${API_BASE}/api/entries/${id}`, { method: 'DELETE', credentials: 'include' });
+  await request<void>(`/api/entries/${id}`, { method: 'DELETE' });
 }
 
 // ---- Epic 4: gewicht & voortgang ----
@@ -256,18 +263,24 @@ export function updateWeight(
 }
 
 export async function deleteWeight(id: string): Promise<void> {
-  await fetch(`${API_BASE}/api/weights/${id}`, { method: 'DELETE', credentials: 'include' });
+  await request<void>(`/api/weights/${id}`, { method: 'DELETE' });
 }
 
 // ---- Login ----
 
-export function login(username: string, password: string): Promise<{ ok: true }> {
-  return request<{ ok: true }>('/api/login', {
+export async function login(username: string, password: string): Promise<{ ok: true }> {
+  const response = await request<{ ok: true; token: string }>('/api/login', {
     method: 'POST',
     body: JSON.stringify({ username, password }),
   });
+  localStorage.setItem(AUTH_TOKEN_KEY, response.token);
+  return { ok: true };
 }
 
 export async function logout(): Promise<void> {
-  await request('/api/logout', { method: 'POST' });
+  try {
+    await request('/api/logout', { method: 'POST' });
+  } finally {
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+  }
 }

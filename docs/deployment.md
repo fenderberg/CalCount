@@ -148,8 +148,8 @@ dat een acceptabele afweging tegen de gratis prijs.
    vereist nu een sessie).
 3. Open `https://fenderberg.github.io/CalCount/` in de browser → moet het inlogscherm
    tonen; log in met `AUTH_USERNAME`/`AUTH_PASSWORD` → moet daarna je bestaande profiel
-   tonen (bevestigt dat `VITE_API_URL`, CORS met `credentials: true`, en de
-   cross-origin sessie-cookie allemaal kloppen).
+   tonen. Dit bevestigt `VITE_API_URL`, CORS en de bearer-fallback; de browser hoeft
+   hiervoor geen third-party cookie tussen GitHub Pages en Render te accepteren.
 4. Log een item via Zoeken en via AI-tekstschatting om end-to-end te bevestigen dat de
    browser (ander domein dan de backend) succesvol met Render praat, met sessie intact.
 5. GitHub → Actions-tab → controleer dat de "Deploy frontend to GitHub Pages"-workflow

@@ -16,7 +16,7 @@ database- en AI-sleutels buiten de browser.
 
 ```text
 Browser/PWA (React + Vite, GitHub Pages)
-              │ HTTPS + sessiecookie
+              │ HTTPS + bearer-token/cookie
               ▼
 Fastify API (Render)
   ├─ Prisma ───────────────► Neon Postgres
@@ -40,7 +40,8 @@ docs/           Canonieke product-, design-, architectuur- en deploydocumentatie
 - `packages/core` bevat geen database- of netwerk-I/O.
 - `api/src/app.ts` exporteert `buildApp()` en registreert alle plugins/routes.
 - `api/src/server.ts` start hetzelfde app-object lokaal en op Render.
-- `web/src/api.ts` is de centrale fetch-client en verstuurt de sessiecookie.
+- `web/src/api.ts` is de centrale fetch-client en verstuurt primair het opgeslagen
+  bearer-token; de sessiecookie blijft een compatibiliteitsroute.
 - React Query beheert server-state en cache-invalidatie.
 
 ## 3. Stack
@@ -113,7 +114,8 @@ wordt automatisch meegenomen doordat de waarde niet als teller wordt opgeslagen.
 
 ## 6. REST API
 
-Alle routes behalve `/health` en `/api/login` vereisen een geldige sessiecookie.
+Alle routes behalve `/health` en `/api/login` vereisen een geldige ondertekende sessie,
+via `Authorization: Bearer …` of de bestaande sessiecookie.
 
 | Methode | Pad | Doel |
 |---|---|---|
@@ -195,10 +197,13 @@ overschreven met `CALCOUNT_AI_PHOTO_MODEL`. Als fotoontwikkeling wordt hervat, b
 ## 8. Authenticatie en beveiliging
 
 - `AUTH_USERNAME` en `AUTH_PASSWORD` configureren de single-user toegangsgate.
-- `AUTH_SECRET` ondertekent de sessiecookie met HMAC.
+- `AUTH_SECRET` ondertekent hetzelfde stateless sessietoken voor cookie en bearer-auth.
 - In productie gebruikt de cookie `Secure` en cross-origin-instellingen, omdat GitHub
   Pages en Render verschillende origins hebben.
-- CORS staat credentials toe; de frontend gebruikt altijd `credentials: 'include'`.
+- Login retourneert het token naast de HttpOnly-cookie. De frontend bewaart het in
+  `localStorage` en stuurt het als bearer-token, omdat Safari en andere browsers
+  third-party cookies tussen GitHub Pages en Render kunnen blokkeren.
+- CORS staat credentials en de `Authorization`-header toe.
 - Database- en AI-secrets bestaan alleen in backend-/deployomgevingen.
 - Foto's en toekomstige coachcontext worden niet persistent door de backend bewaard.
 
@@ -231,7 +236,7 @@ bijbehorende frontend/backendcode wacht op de normale deploy.
 - `npm exec -w api tsc -- --noEmit`: API-typecheck.
 - `npm exec -w api prisma validate`: schema-validatie.
 - `npm run build:web`: frontend-typecheck, PWA- en productiebuild.
-- Handmatige browser-/mobieltests blijven nodig voor camera, cross-origin cookies en
+- Handmatige browser-/mobieltests blijven nodig voor camera, cross-origin authenticatie en
   volledige productieflows.
 
 ## 12. Actuele bouwvolgorde

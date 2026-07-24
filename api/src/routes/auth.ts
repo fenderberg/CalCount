@@ -11,8 +11,11 @@ export async function authRoutes(app: FastifyInstance) {
       return reply.code(401).send({ error: 'Onjuiste gebruikersnaam of wachtwoord' });
     }
 
-    reply.header('set-cookie', sessionCookieHeader(createSessionToken()));
-    return { ok: true };
+    const token = createSessionToken();
+    reply.header('set-cookie', sessionCookieHeader(token));
+    // Bearer-fallback voor browsers die de cross-site cookie tussen GitHub Pages
+    // en Render blokkeren. De cookie blijft bestaan voor same-site/lokale clients.
+    return { ok: true, token };
   });
 
   app.post('/api/logout', async (_req, reply) => {
