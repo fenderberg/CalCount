@@ -30,7 +30,7 @@ export async function foodRoutes(app: FastifyInstance) {
   // Recent/vaak gelogde items voor één-tik her-loggen (Story 2.4).
   app.get('/api/foods/recent', async () => {
     const entries = await prisma.foodEntry.findMany({
-      orderBy: { loggedAt: 'desc' },
+      orderBy: [{ loggedAt: 'desc' }, { createdAt: 'desc' }],
       take: 50,
     });
     // Dedup op naam, meest recente eerst.

@@ -4,7 +4,11 @@ baseline_commit: 3f92b5d3614b7da7f6d9cdccd682db7806eae439
 
 # Story 3.1: Foto maken en versturen
 
-Status: in-progress
+Status: parked
+
+> Prioriteitsbesluit 2026-07-24: Epic 3 is geparkeerd ten gunste van Epics 5 en 6.
+> Tasks 1–5 bestaan in de code; Task 6 blijft open. Zie de canonieke status in
+> `docs/handoff.md` en het definitieve ontwerp in `docs/design.md`.
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -18,7 +22,7 @@ so that ik straks (Story 3.2/3.3) niet handmatig hoef te zoeken of te typen om t
 
 1. Vóórdat de rest van deze story wordt afgebouwd: een reality-check met 15–20 echte maaltijdfoto's tegen `claude-haiku-4-5` (via de nieuwe `estimateFromPhoto`-functie) wordt uitgevoerd en het resultaat (acceptabel / niet-acceptabel) vastgelegd in Completion Notes. [Source: docs/prd.md#Story 3.1 AC1 (via epics.md v1.1-hardening), party-mode-review]
 2. De gebruiker opent de foto-log-flow (nieuwe "Foto"-tab in `LogSheet.tsx`) en tikt op "foto maken"; pas op dat moment vraagt de browser cameratoestemming (geen prompt vooraf/bij app-start). De gebruiker kan in plaats daarvan ook een bestaande foto uit de galerij kiezen. [Source: docs/prd.md FR4, Story 3.1 AC1; party-mode-review]
-3. Een gekozen/gemaakte foto wordt client-side verkleind/gecomprimeerd vóórdat deze als base64 naar de backend gaat (zie Dev Notes — Netlify-payloadlimiet). [Source: docs/architecture.md §5 ("overweeg de fotoresolutie client-side te beperken"); fresh-context review]
+3. Een gekozen/gemaakte foto wordt client-side verkleind/gecomprimeerd vóórdat deze als base64 naar de backend gaat (mobiele data, AI-kosten en Fastify-bodylimit). [Source: docs/architecture.md §7]
 4. De foto gaat via `POST /api/photo/analyze` naar de backend; de Anthropic API-sleutel blijft server-side (nooit in de client). [Source: docs/architecture.md §5, §6; PRD NFR5]
 5. Tijdens de AI-call (richtwaarde ~10s, NFR3) toont de UI een laadstatus die niet als een kale spinner aanvoelt (bv. skeleton-state). [Source: PRD NFR3; party-mode-review]
 6. Bij succes toont het scherm een minimale, read-only weergave van de herkende items (naam + confidence-badge per item, géén editing/opslaan) — dat is de scope van Story 3.2/3.3, niet van deze story. [Source: fresh-context review — sluit scope-gat over items[]-response]
@@ -43,7 +47,7 @@ so that ik straks (Story 3.2/3.3) niet handmatig hoef te zoeken of te typen om t
 - [x] **Task 4 — Frontend: foto-opname + compressie + versturen** (AC: 2, 3, 5)
   - [x] Nieuwe `PhotoTab`-component in `web/src/screens/LogSheet.tsx`, naar het patroon van `AiTab`: `useMutation` die naar de nieuwe `analyzePhoto`-functie in `web/src/api.ts` stuurt.
   - [x] Input via `<input type="file" accept="image/*" capture="environment">` — geeft camera/galerij-keuze via de native OS-picker, vraagt pas toestemming bij interactie (bevestigd juiste patroon voor een PWA, geen `getUserMedia` nodig).
-  - [x] **Client-side compressie vóór base64-encoding**: tekent de gekozen afbeelding op een `<canvas>`, schaalt terug (max 1024px langste zijde) en exporteert als JPEG (kwaliteit 0.8) — noodzakelijk omdat de Netlify Function-laag een eigen payload-plafond van ~6MB heeft bovenop Fastify's `bodyLimit`.
+  - [x] **Client-side compressie vóór base64-encoding**: tekent de gekozen afbeelding op een `<canvas>`, schaalt terug (max 1024px langste zijde) en exporteert als JPEG (kwaliteit 0.8) — beperkt mobiele data, latency, AI-kosten en requestgrootte op Render/Fastify.
   - [x] 'photo' toegevoegd aan het `Tab`-type en de tab-navigatie.
   - [x] Laadstatus: `PhotoSkeleton`-component (twee pulserende placeholder-balken), geen kale spinner-tekst.
   - [x] Foutafhandeling mirrort AiTab's `unavailable`-check (zoekt op "niet geconfigureerd") voor de 503-tak; generieke melding voor overige fouten, met verwijzing naar Zoeken/Handmatig.
@@ -59,7 +63,9 @@ so that ik straks (Story 3.2/3.3) niet handmatig hoef te zoeken of te typen om t
 - **Scope-grens met Story 3.2/3.3:** deze story eindigt bij een *read-only* weergave van herkende items. Multi-item-selectie, corrigeren (schuif/stepper), verwijderen/toevoegen van items, en opslaan via `POST /api/entries` (met `source: 'photo'`, al ondersteund — geen migratie nodig) zijn Story 3.2/3.3. Bouw hier geen `PortionEditor`-integratie.
 - **Bestaand patroon, niet heruitvinden:** `estimateFromText` (aiEstimate.ts) en `POST /api/foods/estimate` (routes/foods.ts) zijn het directe sjabloon voor resp. de nieuwe service-functie en route — zelfde SDK-client, zelfde `output_config.format.json_schema`-aanpak, zelfde foutklasse (`AiUnavailableError`). Niet een nieuw patroon verzinnen.
 - **Datamodel:** geen Prisma-migratie nodig. `FoodEntry.source` bevat al `'photo'` (schema.prisma:32, routes/entries.ts:5) — pas relevant vanaf Story 3.3.
-- **Twee infrastructurele risico's die deze story breken als ze genegeerd worden** (uit onafhankelijke code-review): Fastify's default `bodyLimit` is 1MB (te klein voor een foto) en de Netlify Function-laag heeft een eigen ~6MB-plafond — vandaar zowel de `bodyLimit`-verhoging (Task 3) als de verplichte client-side compressie (Task 4). Sla geen van beide over.
+- **Requestgrootte:** Fastify's default `bodyLimit` is 1MB en daarom verhoogd naar 10MB.
+  Client-side compressie blijft nodig voor mobiele data, latency en AI-kosten. De huidige
+  backend draait als persistent Node-proces op Render, niet meer als Netlify Function.
 - **Modelkeuze-geschiedenis:** `architecture.md` §5 adviseerde oorspronkelijk `claude-sonnet-5` als startpunt voor foto; dat is met de PRD v1.1-hardening (§9 beslissing 13) bijgesteld naar `claude-haiku-4-5` als gedeelde default overal, met een losse `CALCOUNT_AI_PHOTO_MODEL`-override als noodgreep specifiek voor foto. `architecture.md` is al bijgewerkt om dit te reflecteren — geen tegenstrijdigheid meer, maar wees je bewust dat dit een recente wijziging is.
 - **Niet geverifieerd, wél aannemelijk:** een image-content-block combineren met `output_config.format.json_schema` op deze SDK-versie is in deze codebase nog niet eerder gedaan (alleen tekst-only tot nu toe). Behandel dit als te verifiëren, niet als vaststaand — zie Task 2.
 
@@ -72,7 +78,7 @@ so that ik straks (Story 3.2/3.3) niet handmatig hoef te zoeken of te typen om t
 ### References
 
 - [Source: docs/prd.md §2 FR4, FR5; §6 Epic 3 Story 3.1; NFR3, NFR4, NFR5, NFR6, NFR7, NFR8]
-- [Source: docs/architecture.md §5 "AI Fotoherkenning — Contract"; §6 REST API; §12 Deployment (Netlify Functions)]
+- [Source: docs/architecture.md §6–7; docs/design.md]
 - [Source: _bmad-output/planning-artifacts/epics.md — Epic 3, Story 3.1 (incl. party-mode-review implementation notes)]
 - [Source: api/src/services/aiEstimate.ts, api/src/routes/foods.ts, api/src/app.ts, web/src/api.ts, web/src/screens/LogSheet.tsx — bestaande patronen, direct gelezen]
 
@@ -114,4 +120,6 @@ Claude Sonnet 5 (claude-sonnet-5), via Claude Code
 
 ## Change Log
 
-- 2026-07-23 — Tasks 1–5 volledig geïmplementeerd en geverifieerd (typecheck, build, en een live API-call bevestigen het image+json_schema-mechanisme). Twee pre-existing bugs gevonden en gefixt (`.env` werd nooit geladen; `??` i.p.v. `||` liet een lege env-string het model-ID overschrijven met "leeg"). Task 6 (accuracy-check op echte maaltijdfoto's + handmatige toestel-verificatie) blijft open — vereist input van de gebruiker. Status blijft "in-progress" tot AC1 bevestigd is.
+- 2026-07-23 — Tasks 1–5 geïmplementeerd; Task 6 blijft open.
+- 2026-07-24 — Epic 3 door de opdrachtgever geparkeerd ten gunste van Epics 5 en 6;
+  status gewijzigd naar `parked`. Hostingverwijzingen bijgewerkt van Netlify naar Render.

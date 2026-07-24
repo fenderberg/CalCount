@@ -4,11 +4,71 @@
 
 :root {
   color-scheme: light;
+  --surface-page: 247 241 230;
+  --surface-card: 255 255 255;
+  --surface-muted: 240 231 214;
+  --surface-track: 236 224 205;
+  --ink: 42 38 33;
+  --text-muted: 138 133 124;
+  --text-subtle: 111 106 99;
+  --text-faint: 163 157 147;
+  --budget-under: 47 143 94;
+  --budget-under-start: 58 168 108;
+  --budget-under-end: 38 138 86;
+  --budget-near: 217 138 43;
+  --budget-over: 216 84 63;
+  --reward: 138 134 214;
+  --reward-surface: 239 237 249;
+  --reward-text: 93 89 179;
+  --reward-text-strong: 75 71 156;
+  --confidence-high: 47 143 94;
+  --confidence-high-surface: 238 244 239;
+  --confidence-medium: 176 109 26;
+  --confidence-medium-surface: 247 239 224;
+  --confidence-low: 194 106 44;
+  --confidence-low-surface: 247 236 226;
+}
+
+:root.dark {
+  color-scheme: dark;
+  --surface-page: 23 20 15;
+  --surface-card: 33 29 23;
+  --surface-muted: 45 39 31;
+  --surface-track: 62 53 42;
+  --ink: 243 239 232;
+  --text-muted: 177 169 157;
+  --text-subtle: 205 197 185;
+  --text-faint: 145 137 126;
+  --budget-under: 63 168 119;
+  --budget-under-start: 74 184 132;
+  --budget-under-end: 54 151 106;
+  --budget-near: 227 163 79;
+  --budget-over: 228 108 88;
+  --reward: 153 148 229;
+  --reward-surface: 49 47 74;
+  --reward-text: 197 193 255;
+  --reward-text-strong: 226 223 255;
+  --confidence-high: 75 181 132;
+  --confidence-high-surface: 31 57 43;
+  --confidence-medium: 230 164 78;
+  --confidence-medium-surface: 64 49 30;
+  --confidence-low: 224 139 76;
+  --confidence-low-surface: 66 43 29;
 }
 
 body {
   margin: 0;
-  background: #f7f1e6;
+  background: rgb(var(--surface-page));
+  color: rgb(var(--ink));
   -webkit-tap-highlight-color: transparent;
   font-variant-numeric: tabular-nums;
+}
+
+* {
+  transition-property: background-color, border-color, color;
+  transition-duration: 120ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: 0ms !important; }
 }

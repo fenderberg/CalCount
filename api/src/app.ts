@@ -1,11 +1,14 @@
 import cors from '@fastify/cors';
 import Fastify from 'fastify';
 import { authRoutes } from './routes/auth.js';
+import { adviceRoutes } from './routes/advice.js';
+import { badgeRoutes } from './routes/badges.js';
 import { budgetRoutes } from './routes/budget.js';
 import { entryRoutes } from './routes/entries.js';
 import { foodRoutes } from './routes/foods.js';
 import { photoRoutes } from './routes/photo.js';
 import { profileRoutes } from './routes/profile.js';
+import { streakRoutes } from './routes/streak.js';
 import { weightRoutes } from './routes/weights.js';
 import { parseCookie, verifySessionToken } from './services/auth.js';
 
@@ -37,12 +40,15 @@ export async function buildApp() {
   });
 
   await app.register(authRoutes);
+  await app.register(adviceRoutes);
+  await app.register(badgeRoutes);
   await app.register(profileRoutes);
   await app.register(budgetRoutes);
   await app.register(foodRoutes);
   await app.register(entryRoutes);
   await app.register(weightRoutes);
   await app.register(photoRoutes);
+  await app.register(streakRoutes);
 
   return app;
 }

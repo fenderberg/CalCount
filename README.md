@@ -7,14 +7,35 @@ AI-ondersteunde calorietracker (mobile-first PWA).
 - **[docs/handoff.md](docs/handoff.md)** — lees dit eerst als je het project oppakt (staat, draaien, keuzes, openstaande punten).
 - [docs/prd.md](docs/prd.md) — product requirements (wat & waarom).
 - [docs/architecture.md](docs/architecture.md) — technische architectuur (hoe).
-- [docs/deployment.md](docs/deployment.md) — online zetten (GitHub Pages + Render + Neon; repo-kant klaar, Render-service nog aan te maken).
+- [docs/design.md](docs/design.md) — definitieve visuele en interactionele designspecificatie.
+- [docs/deployment.md](docs/deployment.md) — live hosting op GitHub Pages + Render + Neon en de deployprocedure.
 
 ## Status
 
 - **Epic 1 — Fundament & Persoonlijk Caloriebudget: ✅ gebouwd en geverifieerd.**
 - **Epic 2 — Eten loggen & dagoverzicht: ✅ gebouwd en geverifieerd.**
-- **Epic 3 — AI-fotoherkenning: ⏸️ uitgesteld** (op verzoek overgeslagen; de AI-tekstschatting uit Epic 2 blijft wel werken).
+- **Epic 3 — AI-fotoherkenning: ⏸️ geparkeerd** (analyse + read-only preview bestaan; corrigeren/opslaan en accuracy-check volgen later).
 - **Epic 4 — Voortgang & Bijsturen: ✅ gebouwd en geverifieerd.**
+- **Epic 5 — Motivatie & Gamification: ✅ gebouwd** (streak, permanente badge-awards en tijdelijke meldingen).
+- **Epic 6 — AI-advies & Coach: ✅ gebouwd** (wekelijkse snapshots en sessiegebaseerde coach).
+
+### Epic 5
+
+- Streak uit de volledige bestaande loghistorie, inclusief herberekening na wijzigingen.
+- Vaste, wijzigbare profieltijdzone voor stabiele daggrenzen.
+- Compacte logreeks op Vandaag; langste reeks en totaal logdagen zijn voorbereid voor badges.
+- Permanente badges voor 3/7/30 dagen streak, 30 logdagen en positieve gewichtstrend.
+- Nieuwe badges worden alleen kort getoond wanneer Voortgang wordt geopend.
+- Voortgang-subtabs, swipeacties, budget-fit-preview en een profielgebonden light/dark-thema.
+
+### Epic 6
+
+- Wekelijkse AI-inzichten uit een rollend venster van zeven dagen; eenmaal gemaakte
+  inzichten blijven onveranderlijke momentopnamen.
+- Nette lege- en fouttoestanden bij te weinig data of ontbrekende AI-configuratie.
+- Interactieve AI-coach met geheugen binnen de geopende browsersessie, zonder
+  persistente berichtopslag en met maximaal 20 succesvolle vragen per kalenderdag.
+- AI-advies wordt expliciet als suggestie en niet als medisch advies gepresenteerd.
 
 ### Epic 4 in het kort
 
@@ -46,8 +67,8 @@ en tussen dagen bladeren.
 ## Structuur (monorepo, npm workspaces)
 
 ```
-packages/core   Gedeelde types + TDEE/budget-rekenlogica (pure functies + tests)
-api             Fastify backend + Prisma/SQLite + AI-proxy (later)
+packages/core   Gedeelde types + budget-, datum- en streaklogica (pure functies + tests)
+api             Fastify backend + Prisma/Postgres + AI-proxy
 web             React + Vite PWA (mobile-first, Tailwind)
 ```
 
@@ -69,7 +90,8 @@ npm run dev:web        # PWA op http://localhost:5173 (proxyt /api naar de backe
 ## Tests
 
 ```bash
-npm test               # unit tests van de rekenlogica (packages/core)
+npm test               # 32 unit tests van de domeinlogica (packages/core)
+npm run docs:check     # documentatiedrift, links, routes, migraties en BMAD-status
 ```
 
 ## Wat Epic 1 doet

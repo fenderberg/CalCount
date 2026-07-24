@@ -1,8 +1,11 @@
 # CalCount — Deployment (GitHub Pages + Render + Neon)
 
-> **Status: repo-kant geïmplementeerd.** Frontend naar GitHub Pages (via GitHub Actions),
-> backend ongewijzigd (Fastify + Prisma) naar Render, database blijft Neon Postgres. Wat
-> nog moet gebeuren: de Render-service zelf aanmaken (browser-actie, zie "Nog te doen").
+> **Status: live en geverifieerd op 2026-07-24.** GitHub Pages antwoordt met HTTP 200 en
+> `https://calcount-api.onrender.com/health` met `{"status":"ok"}`. De Epic 5-migraties
+> voor `Profile.timeZone` en `BadgeAward` zijn op 2026-07-24 handmatig en succesvol op
+> Neon toegepast. Migratie `20260724150000_add_theme_and_epic6` voor profielthema,
+> inzichtsnapshots en coachgebruik is eveneens toegepast. De code wacht op de
+> eerstvolgende normale deploy.
 
 ## Voorgeschiedenis
 
@@ -54,7 +57,7 @@ Neon Postgres  ◀── DATABASE_URL (pooled, runtime) / DIRECT_URL (direct, mi
 
 ## Component-mapping
 
-| Nu (lokaal) | Straks (deploy) |
+| Lokaal | Productie |
 |---|---|
 | `tsx src/server.ts` (luistert op :3001) | Zelfde commando, draait als Render Web Service (Render zet zelf `PORT`) |
 | Prisma + Neon Postgres | Ongewijzigd — zelfde `DATABASE_URL`/`DIRECT_URL` |
@@ -91,7 +94,10 @@ Neon Postgres  ◀── DATABASE_URL (pooled, runtime) / DIRECT_URL (direct, mi
   `aws-lambda-fastify`/`@netlify/functions`-dependencies, het root-`tsconfig.json` dat
   alleen voor de Netlify Function was).
 
-## Nog te doen (vereist een browser-actie op Render)
+## Herstelprocedure: Render-service opnieuw aanmaken
+
+De onderstaande stappen zijn bewaard als herstel-/herinstallatieprocedure. Voor de
+huidige live service zijn ze al uitgevoerd.
 
 ### Stap 1 — Render-account + Blueprint
 
@@ -149,5 +155,5 @@ dat een acceptabele afweging tegen de gratis prijs.
 5. GitHub → Actions-tab → controleer dat de "Deploy frontend to GitHub Pages"-workflow
    groen is.
 6. Render-dashboard → Logs → controleer dat `npm run db:deploy -w api` zonder fouten
-   liep bij de deploy (migraties zijn al toegepast vanuit de Netlify-periode, dus dit
-   zou een no-op moeten zijn — "No pending migrations").
+   liep. Bij de eerstvolgende deploy hoort migratie
+   `20260724150000_add_theme_and_epic6` al toegepast te zijn; `No pending migrations` is verwacht.

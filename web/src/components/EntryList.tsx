@@ -19,6 +19,8 @@ export function EntryList({ entries }: { entries: FoodEntry[] }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['budget'] });
       queryClient.invalidateQueries({ queryKey: ['entries'] });
+      queryClient.invalidateQueries({ queryKey: ['streak'] });
+      queryClient.invalidateQueries({ queryKey: ['badges'] });
     },
   });
 
@@ -33,39 +35,13 @@ export function EntryList({ entries }: { entries: FoodEntry[] }) {
   return (
     <>
       <ul className="mt-2 space-y-2">
-        {entries.map((e) => (
-          <li
-            key={e.id}
-            className="flex items-center gap-3 rounded-md border border-ink/[0.07] bg-surface-card px-4 py-3"
-          >
-            <button
-              onClick={() => setEditing(e)}
-              className="min-w-0 flex-1 text-left"
-            >
-              <p className="truncate font-medium text-ink">
-                {e.name}
-                {e.isEstimate && (
-                  <span className="ml-1.5 text-xs text-confidence-medium">
-                    ~schatting
-                  </span>
-                )}
-              </p>
-              <p className="text-xs text-text-faint">
-                {SOURCE_LABEL[e.source]}
-                {e.grams ? ` · ${e.grams} g` : ''}
-              </p>
-            </button>
-            <span className="shrink-0 font-semibold text-ink">
-              {e.calories} kcal
-            </span>
-            <button
-              onClick={() => del.mutate(e.id)}
-              aria-label="Verwijderen"
-              className="shrink-0 rounded-full px-2 py-1 text-text-faint active:text-budget-over"
-            >
-              ✕
-            </button>
-          </li>
+        {entries.map((entry) => (
+          <SwipeableEntryRow
+            key={entry.id}
+            entry={entry}
+            onEdit={() => setEditing(entry)}
+            onDelete={() => del.mutate(entry.id)}
+          />
         ))}
       </ul>
 
@@ -73,6 +49,80 @@ export function EntryList({ entries }: { entries: FoodEntry[] }) {
         <EditEntryModal entry={editing} onClose={() => setEditing(null)} />
       )}
     </>
+  );
+}
+
+function SwipeableEntryRow({
+  entry,
+  onEdit,
+  onDelete,
+}: {
+  entry: FoodEntry;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+
+  return (
+    <li className="relative overflow-hidden rounded-md bg-surface-muted">
+      <div className="absolute inset-y-0 right-0 flex w-36">
+        <button
+          type="button"
+          onClick={onEdit}
+          tabIndex={open ? 0 : -1}
+          className="flex-1 bg-reward-surface text-xs font-bold text-reward-text-strong"
+        >
+          Wijzig
+        </button>
+        <button
+          type="button"
+          onClick={onDelete}
+          tabIndex={open ? 0 : -1}
+          className="flex-1 bg-budget-over text-xs font-bold text-white"
+        >
+          Wis
+        </button>
+      </div>
+      <div
+        onTouchStart={(event) => setTouchStart(event.touches[0]?.clientX ?? null)}
+        onTouchEnd={(event) => {
+          if (touchStart == null) return;
+          const delta = (event.changedTouches[0]?.clientX ?? touchStart) - touchStart;
+          if (delta < -35) setOpen(true);
+          if (delta > 35) setOpen(false);
+          setTouchStart(null);
+        }}
+        className={`relative flex items-center gap-3 rounded-md border border-ink/[0.07] bg-surface-card px-4 py-3 transition-transform motion-reduce:transition-none ${
+          open ? '-translate-x-36' : 'translate-x-0'
+        }`}
+      >
+        <button
+          type="button"
+          onClick={() => (open ? setOpen(false) : onEdit())}
+          className="min-w-0 flex-1 text-left"
+        >
+          <p className="truncate font-medium text-ink">
+            {entry.name}
+            {entry.isEstimate && <span className="ml-1.5 text-xs text-confidence-medium">~schatting</span>}
+          </p>
+          <p className="text-xs text-text-faint">
+            {SOURCE_LABEL[entry.source]}
+            {entry.grams ? ` · ${entry.grams} g` : ''}
+          </p>
+        </button>
+        <span className="shrink-0 font-semibold text-ink">{entry.calories} kcal</span>
+        <button
+          type="button"
+          onClick={() => setOpen((value) => !value)}
+          aria-label={open ? 'Acties sluiten' : 'Acties tonen'}
+          aria-expanded={open}
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-lg text-text-faint active:bg-surface-muted"
+        >
+          ⋯
+        </button>
+      </div>
+    </li>
   );
 }
 
@@ -98,12 +148,14 @@ function EditEntryModal({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['budget'] });
       queryClient.invalidateQueries({ queryKey: ['entries'] });
+      queryClient.invalidateQueries({ queryKey: ['streak'] });
+      queryClient.invalidateQueries({ queryKey: ['badges'] });
       onClose();
     },
   });
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end bg-ink/30 sm:items-center sm:justify-center">
+    <div className="fixed inset-0 z-50 flex items-end bg-black/45 sm:items-center sm:justify-center">
       <div className="w-full rounded-t-2xl bg-surface-page p-5 sm:max-w-md sm:rounded-2xl">
         <h3 className="text-xl font-bold text-ink">Item bewerken</h3>
         <div className="mt-4 space-y-3">

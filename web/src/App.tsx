@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { getProfile } from './api.js';
 import { TabBar, type Tab } from './components/TabBar.js';
+import { useEffect } from 'react';
 import { Home } from './screens/Home.js';
 import { Login } from './screens/Login.js';
 import { Onboarding } from './screens/Onboarding.js';
@@ -20,6 +21,15 @@ export function App() {
     retry: (failureCount, err) =>
       (err as { status?: number }).status !== 401 && failureCount < 3,
   });
+
+  useEffect(() => {
+    if (!profile) return;
+    const dark = profile.theme === 'dark';
+    document.documentElement.classList.toggle('dark', dark);
+    document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute('content', dark ? '#17140f' : '#2a2621');
+  }, [profile]);
 
   if (isLoading) {
     return <CenterMessage>Laden...</CenterMessage>;

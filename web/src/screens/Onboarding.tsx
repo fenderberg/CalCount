@@ -1,4 +1,4 @@
-import type { ActivityLevel, Sex, UserProfile } from '@calcount/core';
+import type { ActivityLevel, Sex, ThemePreference, UserProfile } from '@calcount/core';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { saveProfile, type StoredProfile } from '../api.js';
@@ -18,6 +18,16 @@ const GOAL_OPTIONS: { value: number; label: string }[] = [
   { value: -0.25, label: 'Rustig afvallen (0,25 kg/week)' },
   { value: 0, label: 'Gewicht behouden' },
 ];
+
+const DEVICE_TIME_ZONE = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+
+function availableTimeZones(selected: string): string[] {
+  const intl = Intl as typeof Intl & {
+    supportedValuesOf?: (key: 'timeZone') => string[];
+  };
+  const supported = intl.supportedValuesOf?.('timeZone') ?? [];
+  return [...new Set([selected, DEVICE_TIME_ZONE, 'UTC', ...supported])].sort();
+}
 
 interface Props {
   existing?: StoredProfile;
@@ -40,12 +50,18 @@ export function Onboarding({ existing, onDone, onCancel }: Props) {
   const [targetWeightKg, setTargetWeight] = useState(
     existing?.targetWeightKg?.toString() ?? '',
   );
+  const [timeZone, setTimeZone] = useState(existing?.timeZone ?? DEVICE_TIME_ZONE);
+  const [theme, setTheme] = useState<ThemePreference>(
+    existing?.theme ?? (document.documentElement.classList.contains('dark') ? 'dark' : 'light'),
+  );
 
   const mutation = useMutation({
     mutationFn: (p: UserProfile) => saveProfile(p),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['profile'] });
       queryClient.invalidateQueries({ queryKey: ['budget'] });
+      queryClient.invalidateQueries({ queryKey: ['streak'] });
+      queryClient.invalidateQueries({ queryKey: ['badges'] });
       onDone();
     },
   });
@@ -60,14 +76,18 @@ export function Onboarding({ existing, onDone, onCancel }: Props) {
       activityLevel,
       goalRateKgPerWeek,
       targetWeightKg: targetWeightKg ? Number(targetWeightKg) : undefined,
+      timeZone,
+      theme,
     });
   }
 
   return (
     <div className="mx-auto min-h-dvh max-w-md bg-surface-page px-5 py-8">
-      <h1 className="text-3xl font-extrabold tracking-[-0.02em] text-ink">
-        {existing ? 'Profiel wijzigen' : 'Welkom bij CalCount'}
-      </h1>
+      <header>
+        <h1 className="text-3xl font-extrabold tracking-[-0.02em] text-ink">
+          {existing ? 'Profiel wijzigen' : 'Welkom bij CalCount'}
+        </h1>
+      </header>
       <p className="mt-1 text-text-muted">
         Vul je gegevens in zodat we je dagbudget kunnen berekenen.
       </p>
@@ -161,6 +181,29 @@ export function Onboarding({ existing, onDone, onCancel }: Props) {
             placeholder="Bijv. 80"
             className={inputClass}
           />
+        </Field>
+
+        <Field label="Tijdzone voor daggrens">
+          <select
+            value={timeZone}
+            onChange={(e) => setTimeZone(e.target.value)}
+            className={inputClass}
+          >
+            {availableTimeZones(timeZone).map((zone) => (
+              <option key={zone} value={zone}>{zone}</option>
+            ))}
+          </select>
+        </Field>
+
+        <Field label="Weergave">
+          <div className="grid grid-cols-2 gap-3">
+            <ToggleButton active={theme === 'light'} onClick={() => setTheme('light')}>
+              Licht
+            </ToggleButton>
+            <ToggleButton active={theme === 'dark'} onClick={() => setTheme('dark')}>
+              Donker
+            </ToggleButton>
+          </div>
         </Field>
 
         {mutation.isError && (

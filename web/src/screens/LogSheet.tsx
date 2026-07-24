@@ -4,6 +4,7 @@ import {
   analyzePhoto,
   createEntry,
   estimateFood,
+  getBudget,
   getRecent,
   searchFoods,
   type AiPhotoEstimate,
@@ -11,6 +12,7 @@ import {
   type FoodRef,
   type NewEntry,
 } from '../api.js';
+import { loggedAtForDay } from '@calcount/core';
 
 type Tab = 'recent' | 'search' | 'manual' | 'ai' | 'photo';
 
@@ -40,16 +42,11 @@ export function LogSheet({ date, onClose }: Props) {
       queryClient.invalidateQueries({ queryKey: ['budget'] });
       queryClient.invalidateQueries({ queryKey: ['entries'] });
       queryClient.invalidateQueries({ queryKey: ['recent'] });
+      queryClient.invalidateQueries({ queryKey: ['streak'] });
+      queryClient.invalidateQueries({ queryKey: ['badges'] });
       onClose();
     },
   });
-
-  function loggedAtFor(): string {
-    // Log op de gekozen dag; bij vandaag de echte tijd, anders middaguur.
-    const today = new Date().toISOString().slice(0, 10);
-    if (date === today) return new Date().toISOString();
-    return new Date(`${date}T12:00:00`).toISOString();
-  }
 
   function save(d: Draft) {
     logMutation.mutate({
@@ -58,7 +55,9 @@ export function LogSheet({ date, onClose }: Props) {
       calories: d.calories,
       grams: d.grams,
       isEstimate: d.isEstimate,
-      loggedAt: loggedAtFor(),
+      // Bucket het item in de bekeken kalenderdag (middag-UTC), zodat het
+      // ongeacht tijdzone op precies die dag verschijnt.
+      loggedAt: loggedAtForDay(date),
     });
   }
 
@@ -74,13 +73,14 @@ export function LogSheet({ date, onClose }: Props) {
       {draft ? (
         <PortionEditor
           draft={draft}
+          date={date}
           onCancel={() => setDraft(null)}
           onSave={save}
           saving={logMutation.isPending}
         />
       ) : (
         <>
-          <nav className="flex gap-1 px-3 py-2">
+          <nav className="flex flex-wrap gap-1 px-3 py-2">
             {(
               [
                 ['recent', 'Recent'],
@@ -93,7 +93,7 @@ export function LogSheet({ date, onClose }: Props) {
               <button
                 key={value}
                 onClick={() => setTab(value)}
-                className={`flex-1 rounded-full py-2.5 text-sm font-semibold ${
+                className={`min-h-tap-min basis-[30%] flex-grow rounded-full px-2 py-2 text-sm font-semibold ${
                   tab === value
                     ? 'bg-ink text-surface-page'
                     : 'bg-surface-muted text-text-subtle'
@@ -457,11 +457,13 @@ function PhotoSkeleton() {
 // ---- Portie-editor (bevestigen/corrigeren vóór opslaan) ----
 function PortionEditor({
   draft,
+  date,
   onCancel,
   onSave,
   saving,
 }: {
   draft: Draft;
+  date: string;
   onCancel: () => void;
   onSave: (d: Draft) => void;
   saving: boolean;
@@ -469,6 +471,7 @@ function PortionEditor({
   const [name, setName] = useState(draft.name);
   const [grams, setGrams] = useState(draft.grams?.toString() ?? '');
   const [calories, setCalories] = useState(draft.calories.toString());
+  const budget = useQuery({ queryKey: ['budget', date], queryFn: () => getBudget(date) });
 
   // Bij een product met kcal/100g bepalen de grammen de calorieën.
   useEffect(() => {
@@ -478,6 +481,8 @@ function PortionEditor({
   }, [grams, draft.caloriesPer100g]);
 
   const perGramLocked = draft.caloriesPer100g !== undefined;
+  const proposedCalories = Number(calories);
+  const afterAdding = budget.data ? budget.data.remaining - proposedCalories : undefined;
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -533,6 +538,20 @@ function PortionEditor({
           <p className="text-xs text-text-faint">
             {draft.caloriesPer100g} kcal per 100 g — pas het gewicht aan om de
             calorieën te wijzigen.
+          </p>
+        )}
+        {afterAdding !== undefined && Number.isFinite(proposedCalories) && proposedCalories > 0 && (
+          <p
+            className={`flex items-center gap-2 rounded-lg px-4 py-3 text-sm font-medium ${
+              afterAdding >= 0
+                ? 'bg-budget-under/10 text-budget-under'
+                : 'bg-budget-near/10 text-budget-near'
+            }`}
+          >
+            <span className="h-2 w-2 shrink-0 rounded-full bg-current" aria-hidden="true" />
+            {afterAdding >= 0
+              ? `Past binnen je dagbudget · daarna ${Math.round(afterAdding)} kcal over`
+              : `Brengt je ${Math.abs(Math.round(afterAdding))} kcal boven je dagbudget`}
           </p>
         )}
       </div>

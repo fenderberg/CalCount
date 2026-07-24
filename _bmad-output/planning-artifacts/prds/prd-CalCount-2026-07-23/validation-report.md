@@ -1,5 +1,8 @@
 # Validation Report — CalCount PRD v1.1
 
+> Historische reviewmomentopname van 2026-07-23. Bevindingen zijn daarna verwerkt;
+> gebruik `docs/prd.md` en `docs/handoff.md` voor de actuele status.
+
 - **PRD:** `docs/prd.md`
 - **Scope:** v1.1 additions — Epic 3 reactivation, Epic 5 (Gamification), Epic 6 (AI-advies & Coach), FR14–FR18, NFR9
 - **Rubric:** `.claude/skills/bmad-prd/assets/prd-validation-checklist.md`

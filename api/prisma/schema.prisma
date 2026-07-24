@@ -20,6 +20,8 @@ model Profile {
   activityLevel     String // sedentary | light | moderate | active | very_active
   goalRateKgPerWeek Float
   targetWeightKg    Float?
+  timeZone           String?
+  theme              String   @default("light")
   updatedAt         DateTime @updatedAt
 }
 
@@ -62,4 +64,27 @@ model WeightEntry {
   weightKg   Float
 
   @@index([measuredAt])
+}
+
+// Permanent toegekende prestaties (Story 5.2). Awards worden nooit verwijderd.
+model BadgeAward {
+  key      String   @id
+  earnedAt DateTime @default(now())
+}
+
+// Onveranderlijke wekelijkse AI-inzichten (Story 6.1).
+model AiInsight {
+  id          String   @id @default(cuid())
+  windowStart String
+  windowEnd   String
+  content     String
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+// Alleen de teller wordt bewaard; coachberichten blijven in de browsersessie.
+model AiCoachUsage {
+  day   String @id
+  count Int    @default(0)
 }

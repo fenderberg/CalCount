@@ -1,166 +1,152 @@
-# CalCount — Overdrachtsdocument
+# CalCount — Overdracht
 
-> Lees dit eerst als je het project oppakt (bijv. in VS Code). Het beschrijft de huidige
-> staat, hoe je het draait, welke keuzes gemaakt zijn en wat er nog open staat.
+> Actuele instap voor ontwikkeling. Bijgewerkt op 2026-07-24.
 
-## TL;DR
+## Stand van zaken
 
-CalCount is een **mobile-first PWA** (React + Vite) met een **Fastify-backend** (SQLite lokaal,
-Postgres/Neon in productie, via Prisma) die als AI-proxy dient. Het is een
-AI-ondersteunde calorietracker: profiel → dagbudget → eten loggen → gewicht volgen.
-**Epics 1, 2 en 4 zijn gebouwd en end-to-end geverifieerd.** Epic 3 (AI-fotoherkenning) is
-uitgesteld. De repo is voorbereid voor GitHub Pages + Render + Neon (zie
-[deployment.md](deployment.md)); de Render-service zelf is nog niet aangemaakt.
+CalCount is een mobile-first React/Vite-PWA met een Fastify-backend en Prisma/Postgres
+op Neon. GitHub Pages en Render zijn live. De app is single-user met een eenvoudige
+login-gate uit omgevingsvariabelen.
 
-Documenten: [prd.md](prd.md) (wat & waarom) · [architecture.md](architecture.md) (hoe) ·
-[deployment.md](deployment.md) (online zetten) · dit bestand (overdracht).
-
-## Status per epic
-
-| Epic | Status | Wat er werkt |
+| Epic | Status | Actuele functionaliteit |
 |---|---|---|
-| 1 — Fundament & budget | ✅ | Profielonboarding, TDEE/budget (Mifflin-St Jeor), één-getal-hoofdscherm met ring |
-| 2 — Eten loggen | ✅ | Zoeken (Open Food Facts), handmatig, AI-tekstschatting, recent; dagtotaal + resterend; bewerken/verwijderen; bladeren tussen dagen |
-| 3 — AI-fotoherkenning | ⏸️ Uitgesteld | Datamodel + contract voorbereid; niet gebouwd |
-| 4 — Voortgang & bijsturen | ✅ | Gewicht bijhouden, trendgrafiek + streefgewicht, budget beweegt automatisch mee, doel bijstellen |
+| 1 — Fundament & budget | ✅ | Profiel, Mifflin-St Jeor, doeltempo, veilig dagbudget en budgetring |
+| 2 — Eten loggen | ✅ | Zoeken, handmatig, AI-tekst, recent, CRUD, daghistorie en budgetstatus |
+| 3 — AI-fotoherkenning | ⏸️ Geparkeerd | Camera/galerij, compressie, AI-route en read-only preview; correctie/opslag en accuracy-check open |
+| 4 — Voortgang | ✅ | Gewicht CRUD, trendgrafiek, streefgewicht en automatische budgetherberekening |
+| 5 — Motivatie | ✅ | Streak, vaste tijdzone, permanente awards en tijdelijke badgepopup bij openen Voortgang |
+| 6 — AI-advies | ✅ | Wekelijkse inzichtsnapshots en sessiegebaseerde AI-coach met daglimiet |
+
+Epic 6 is afgerond. Epic 3 blijft geparkeerd totdat fotofunctionaliteit opnieuw wordt geprioriteerd.
+
+## Canonieke documentatie
+
+- [prd.md](prd.md) — requirements, epics en acceptance criteria.
+- [design.md](design.md) — definitieve visuele en interactionele designspecificatie.
+- [architecture.md](architecture.md) — actuele stack, modellen en API-contracten.
+- [deployment.md](deployment.md) — live hosting, configuratie en deploycontrole.
+- BMAD-bestanden in `_bmad-output/` zijn planning-, story- of historische bronartefacten.
+  Bij verschillen zijn de documenten in `docs/` leidend.
 
 ## Lokaal draaien
 
-**Vereisten:** Node 20+ (getest op Node 25) en npm 10+.
-
-> **Let op — sinds de Postgres-migratie (zie [deployment.md](deployment.md)) is er geen
-> zero-config SQLite meer.** `api/prisma/schema.prisma` wijst nu op Postgres via
-> `DATABASE_URL`/`DIRECT_URL`. Zet die in `api/.env` (zie `api/.env.example`) — eenvoudigst
-> is dezelfde Neon-connection strings als productie ook lokaal te gebruiken (single-user
-> hobby-app, geen aparte lokale Postgres nodig). Zonder een Neon-project aangemaakt
-> werkt `npm run dev:api` dus nog niet.
+Vereisten: Node 20+, npm 10+ en geldige Postgres/Neon-connection strings.
 
 ```bash
-# 1. Dependencies (alle workspaces)
 npm install
-
-# 2. Database migreren (Postgres/Neon; vereist DATABASE_URL/DIRECT_URL in api/.env)
 npm run db:setup
 
-# 3. Backend starten (http://localhost:3001)
+# twee terminals
 npm run dev:api
-
-# 4. In een tweede terminal: frontend (http://localhost:5173)
 npm run dev:web
 ```
 
-De frontend proxyt `/api/*` en `/health` naar de backend op poort 3001 (zie `web/vite.config.ts`).
+De API gebruikt `api/.env`; zie `api/.env.example`. De web-devserver proxyt `/api` en
+`/health` naar `localhost:3001`.
 
-**Tests** (de rekenlogica — de kern die correct moet zijn):
-
-```bash
-npm test        # 12 unit tests in packages/core
-```
-
-**Web production build** (typecheck + bundle + PWA service worker):
+## Verificatie
 
 ```bash
+npm test
+npm exec -w api tsc -- --noEmit
+npm exec -w api prisma validate
 npm run build:web
+npm run docs:check
 ```
+
+Actuele uitslag: 32 unit tests slagen, API-typecheck en Prisma-validatie slagen en de
+PWA-productiebouw slaagt. De bundle is ongeveer 610 kB; Recharts lazy-loaden blijft een
+latere optimalisatie.
+
+`npm run docs:check` borgt de canonieke documenten, lokale links, bekende drifttermen,
+API-routecoverage, de nieuwste migratie, BMAD-status en een maximale reviewleeftijd van
+45 dagen. GitHub Actions draait deze check op pull requests, pushes naar `main`, iedere
+maandag en handmatig.
+
+De Epic 5-migraties en `20260724150000_add_theme_and_epic6` zijn op 2026-07-24 succesvol
+op Neon toegepast. De frontend-/backendcode moet nog via de normale commit/deploy naar
+GitHub Pages en Render.
 
 ## Repo-structuur
 
-```
+```text
 CalCount/
-├─ docs/                     PRD, architectuur, deployment, dit bestand
-├─ packages/core/            Gedeelde types + TDEE/budget-logica (pure functies + tests)
+├─ docs/                     Canonieke documentatie
+├─ packages/core/src/        Types, calorie-, datum- en streaklogica + tests
+├─ api/
+│  ├─ prisma/                Postgres-schema en migraties
 │  └─ src/
-│     ├─ types.ts            UserProfile, BudgetResult, DaySummary, ...
-│     ├─ calories.ts         calculateTDEE / calculateDailyBudget / summarizeDay
-│     └─ calories.test.ts    12 tests
-├─ api/                      Fastify backend
-│  ├─ prisma/schema.prisma   Datamodel (Profile, FoodEntry, WeightEntry, FoodReference)
-│  └─ src/
-│     ├─ app.ts              buildApp() — de Fastify-app + route-registratie (geen listen)
-│     ├─ server.ts           Lokale dev-entrypoint: buildApp() + .listen()
-│     ├─ db.ts               Prisma-client (single-user: PROFILE_ID = 1)
-│     ├─ validation.ts       Invoervalidatie profiel
-│     ├─ routes/             profile · budget · entries · foods · weights
-│     └─ services/           openFoodFacts.ts · aiEstimate.ts (Claude, degradeert zonder key)
-├─ render.yaml               Render Blueprint: buildCommand/startCommand voor de backend
-├─ .github/workflows/pages.yml  Bouwt web/dist en publiceert naar GitHub Pages
-└─ web/                      React + Vite PWA
-   └─ src/
-      ├─ api.ts              Fetch-client naar de backend
-      ├─ App.tsx             Onboarding vs. tabs (Vandaag / Voortgang)
-      ├─ screens/            Onboarding · Home · LogSheet · Progress
-      └─ components/         BudgetRing · EntryList · WeightChart · TabBar
+│     ├─ routes/             auth, profile, budget, logdata, badges en AI-advies
+│     └─ services/           auth, Open Food Facts en Anthropic
+├─ web/src/
+│  ├─ screens/               Login, Onboarding, Home, LogSheet, Progress
+│  └─ components/            BudgetRing, EntryList, WeightChart, TabBar
+├─ .github/workflows/        GitHub Pages deployment
+└─ render.yaml               Render Web Service
 ```
 
-## Datamodel (Prisma / SQLite)
+## Datamodel
 
-- **Profile** — single-user (id=1): lengte, gewicht, geboortedatum, geslacht, activiteit, doeltempo, streefgewicht.
-- **FoodEntry** — gelogd item: naam, source (`search`/`manual`/`ai`/`recent`/`photo`), gram, calorieën, macro's, isEstimate, loggedAt.
-- **WeightEntry** — meting: gewicht, measuredAt.
-- **FoodReference** — cache van producten (kcal/100g) uit Open Food Facts, handmatig of AI; voedt zoeken/recent en werkt offline.
+- **Profile** — één profiel (`id = 1`) met lichaamsgegevens, doel, tijdzone en thema.
+- **FoodEntry** — gelogde voeding met bron, kcal, gram, macro's, schattingsvlag en dag.
+- **FoodReference** — lokale voedingsreferentie/cache.
+- **WeightEntry** — gewichtsmeting; synchroniseert het actuele profielgewicht.
+- **BadgeAward** — permanent toegekende badge met earn-datum.
+- **AiInsight** — onveranderlijke wekelijkse AI-momentopname met bronvenster.
+- **AiCoachUsage** — dagelijkse vraagteller; coachberichten worden niet opgeslagen.
 
-## API (REST/JSON, single-user)
+Streaks zijn afgeleid en worden niet opgeslagen. De API berekent huidige/langste reeks
+en totaal unieke logdagen telkens uit de actuele loghistorie. Daardoor tellen bestaande
+items direct mee en herberekent verwijderen automatisch.
+
+## API-overzicht
 
 | Methode | Pad | Doel |
 |---|---|---|
-| GET/PUT | `/api/profile` | Profiel ophalen/opslaan (PUT = volledige vervanging) |
-| GET | `/api/budget?date=YYYY-MM-DD` | Dagbudget (TDEE, budget, consumed, remaining, status) |
-| GET/POST/PATCH/DELETE | `/api/entries` (`/:id`) | Eetlog CRUD; `?date=` filtert per dag |
-| GET | `/api/foods/search?q=` | Producten zoeken (OFF + cache) |
-| POST | `/api/foods/estimate` | AI-tekstschatting (503 zonder API-sleutel) |
-| GET | `/api/foods/recent` | Recent gelogde items |
-| GET/POST/PATCH/DELETE | `/api/weights` (`/:id`) | Gewicht CRUD; POST/DELETE synct profielgewicht |
-| GET | `/health` | Health-check |
+| `GET` | `/health` | Publieke healthcheck |
+| `POST` | `/api/login`, `/api/logout` | Single-user sessie |
+| `GET`, `PUT` | `/api/profile` | Profiel ophalen/vervangen |
+| `GET` | `/api/budget?date=` | Dagbudget |
+| `GET`, `POST`, `PATCH`, `DELETE` | `/api/entries` / `:id` | Eetlog CRUD |
+| `GET` | `/api/foods/search?q=` | Product zoeken |
+| `POST` | `/api/foods/estimate` | AI-tekstschatting |
+| `GET` | `/api/foods/recent` | Recente items |
+| `POST` | `/api/photo/analyze` | Fotoanalyse zonder opslag |
+| `GET`, `POST`, `PATCH`, `DELETE` | `/api/weights` / `:id` | Gewicht CRUD |
+| `GET` | `/api/streak?timeZone=` | Streakstatistieken |
+| `GET` | `/api/badges` | Badge-evaluatie, awards en voortgang |
+| `GET` | `/api/insights?timeZone=` | Laatste of nieuw wekelijks AI-inzicht |
+| `GET` | `/api/coach/usage?timeZone=` | Resterende coachvragen vandaag |
+| `POST` | `/api/coach` | Coachvraag met tijdelijke sessiehistorie |
 
 ## Omgevingsvariabelen
 
-De app werkt out-of-the-box zonder configuratie, behalve de AI-tekstschatting:
+| Variabele | Doel |
+|---|---|
+| `DATABASE_URL` | Pooled Postgres-verbinding voor runtime |
+| `DIRECT_URL` | Directe Postgres-verbinding voor migraties |
+| `AUTH_USERNAME`, `AUTH_PASSWORD` | Login-gate |
+| `AUTH_SECRET` | HMAC-ondertekening sessiecookie |
+| `COOKIE_SECURE` | `true` in productie voor cross-origin cookie |
+| `ANTHROPIC_API_KEY` | AI-tekst, foto, inzichten en coach |
+| `CALCOUNT_AI_MODEL` | Default `claude-haiku-4-5` |
+| `CALCOUNT_AI_PHOTO_MODEL` | Optionele foto-override |
+| `PORT` | API-poort; lokaal standaard 3001 |
 
-| Variabele | Waar | Nodig voor | Default |
-|---|---|---|---|
-| `ANTHROPIC_API_KEY` | backend-omgeving | AI-tekstschatting (Epic 2) en later AI-foto (Epic 3) | — (feature degradeert netjes zonder) |
-| `CALCOUNT_AI_MODEL` | backend-omgeving | AI-model kiezen | `claude-haiku-4-5` |
-| `CALCOUNT_AI_PHOTO_MODEL` | backend-omgeving | Apart model voor AI-fotoherkenning (Epic 3) | valt terug op `CALCOUNT_AI_MODEL` |
-| `PORT` | backend-omgeving (lokaal) | Poort backend bij `npm run dev:api` | `3001` |
-| `DATABASE_URL` | backend-omgeving / Render | Postgres-verbinding (pooled, runtime) naar Neon | — |
-| `DIRECT_URL` | backend-omgeving / Render | Postgres-verbinding (direct, alleen voor `prisma migrate`) | — |
-| `AUTH_USERNAME` / `AUTH_PASSWORD` | backend-omgeving | Login-toegangsgate (verplicht — zonder deze is elke API-aanroep 401) | — |
-| `AUTH_SECRET` | backend-omgeving | Ondertekent de sessie-cookie (HMAC) | — |
-| `COOKIE_SECURE` | backend-omgeving | `true` in productie (SameSite=None; Secure, want frontend/backend zijn andere origins) | leeg/`false` lokaal |
+## Belangrijke besluiten en beperkingen
 
-Zie `api/.env.example`. Zet nooit een echte sleutel in de repo.
+- Handmatig loggen blijft de functionele terugval als AI of Open Food Facts faalt.
+- De vaste profieltijdzone bepaalt dag- en streakgrenzen, ook tijdens reizen.
+- [design.md](design.md) is de designautoriteit; gamification gebruikt de rustige lila
+  reward-familie en blijft ondergeschikt aan de budgetring.
+- Light/dark-thema gebruikt semantische CSS-tokens; de keuze staat in het profiel.
+- Fotoherkenning wordt niet verder afgebouwd totdat Epic 3 opnieuw wordt geprioriteerd.
+- AI-coachgesprekken worden alleen in de browsersessie onthouden, niet persistent.
+- Render free tier kan na inactiviteit een koude start hebben.
 
-## Belangrijke keuzes (beslissingenlogboek)
+## Volgende stappen
 
-Deze zijn met de opdrachtgever bevestigd tijdens de bouw:
-
-- **PWA** i.p.v. native; **single-user** zonder login (v1).
-- **Handmatig loggen is altijd de terugval** — werkt zonder internet en zonder AI-sleutel.
-- **Voedingsbronnen gecombineerd:** Open Food Facts + handmatig + AI-tekst (+ AI-foto later).
-- **Gewicht → budget:** een nieuwe meting werkt het profielgewicht bij → TDEE/budget bewegen mee.
-- **Streefgewicht** optioneel, met voortgangslijn in de grafiek.
-- **Rekenlogica geïsoleerd** in `packages/core` als pure, geteste functies.
-
-## Hoe het geverifieerd is
-
-- `packages/core`: 12 unit tests (TDEE, budget, ondergrens-clamping, dagstatus).
-- API: handmatig getest per endpoint (curl) inclusief validatie en degradatie.
-- Frontend: end-to-end in de browser gedreven (onboarding → budget → loggen via zoeken → dagtotaal → recent → bewerken/verwijderen → dagnavigatie → gewicht loggen → grafiek + streefgewicht → auto-herberekening budget).
-
-## Bekende beperkingen / aandachtspunten
-
-- **AI-tekstschatting** vereist `ANTHROPIC_API_KEY`; zonder sleutel toont de UI een nette uitleg en verwijst naar Zoeken/Handmatig.
-- **Open Food Facts** heeft wisselende latency; de zoekopdracht heeft een time-out van 12s en valt terug op de lokale cache. Handmatig invoeren werkt altijd.
-- **Web-bundle ~595 KB** door de grafiek-library (Recharts). Prima, maar code-splitting (grafiek lazy laden) is een nette latere optimalisatie.
-- **Render's gratis tier slaapt na inactiviteit** — het eerste verzoek na een tijdje duurt een paar seconden extra terwijl de service wakker wordt. Acceptabel voor een single-user hobby-app.
-
-## Openstaande punten & aanbevolen volgende stappen
-
-1. **GitHub-push.** ✅ Gedaan — de repo staat op `github.com/fenderberg/CalCount`.
-2. **Productie-deployment.** Repo-kant klaar voor GitHub Pages + Render + Neon (zie
-   [deployment.md](deployment.md)): frontend bouwt en publiceert automatisch naar GitHub
-   Pages via `.github/workflows/pages.yml`; backend blijft ongewijzigd Fastify/Prisma,
-   klaar om via `render.yaml` op Render te draaien. Nog te doen: de Render-service zelf
-   aanmaken (browser-actie, env-variabelen invullen) — zie deployment.md.
-3. **Epic 3 — AI-fotoherkenning.** Contract staat in [architecture.md §5](architecture.md); vereist een `ANTHROPIC_API_KEY`. De log-flow en het datamodel zijn er al op voorbereid (de `photo`-bron bestaat).
-4. **Optioneel (buiten PRD-scope):** barcodescanner, water/macro's, wearable-koppeling, multi-user + login.
+1. De huidige Epic 5/6-code committen en naar GitHub Pages/Render deployen.
+2. Productiecontrole uitvoeren voor profielthema, tijdelijke badgepopup, inzichten en coachlimiet.
+3. Handmatige mobiele visuele controle uitvoeren voor swipe, popup, coachflow en dark mode.
+4. Epic 3 alleen hervatten na een nieuw expliciet prioriteitsbesluit.

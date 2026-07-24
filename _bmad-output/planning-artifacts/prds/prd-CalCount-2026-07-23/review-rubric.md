@@ -1,5 +1,8 @@
 # PRD Quality Review — CalCount (v1.1, 2026-07-23)
 
+> Historische reviewmomentopname. De badge-set, coachlimiet, authenticatie, het design
+> en de streak-tijdzone zijn later besloten; zie de canonieke documenten in `docs/`.
+
 ## Overall verdict
 
 The v1.0 core (Epics 1/2/4, now Epic 3) is a tight, well-scoped single-user PRD, and the v1.1 additions inherit its good habits: inline `(Aanname: ...)` tags on every new FR, an honest Out-of-Scope boundary for gamification (§7), and a genuine counter-metric tying gamification to the trackgemak metric (§8). But the two brand-new epics have real done-ness gaps that the existing epics didn't have: Epic 5's badge milestone set is undefined despite the epic already being written at story/AC granularity, and Epic 6's AI-coach has no defined interaction model (single Q&A vs. stateful conversation) and no concrete cost/abuse bound for a feature exposed on an unauthenticated single-user app. Nothing here is critical for a hobby app, but these are the three items an engineer would actually get stuck on.

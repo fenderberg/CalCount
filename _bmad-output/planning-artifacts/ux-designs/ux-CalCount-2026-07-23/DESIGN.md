@@ -130,7 +130,10 @@ components:
 
 # Project Context for Design
 
-_Distilled from the external design-tool export (`imports/CalCount.dc.html`), produced 2026-07-24 in response to the v1.1 UX-redesign handoff prompt (`.working/stitch-prompt.md`). This file owns visual identity; `EXPERIENCE.md` owns behavior._
+> Bronartefact. De definitieve, gecombineerde en actuele designspecificatie staat in
+> `docs/design.md` en is bij verschillen leidend.
+
+_Distilled from the external design-tool export (`imports/CalCount.dc.html`), produced 2026-07-24. This file preserves the visual source; `EXPERIENCE.md` preserves the behavioral source._
 
 ## Brand & Style
 

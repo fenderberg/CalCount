@@ -1,10 +1,10 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: ['./index.html', './src/**/*.{ts,tsx}'],
   theme: {
     extend: {
-      // Tokens uit _bmad-output/planning-artifacts/ux-designs/ux-CalCount-2026-07-23/DESIGN.md.
-      // Alleen de light-mode tokens: dark mode staat nog niet in de PRD/huidige implementatie.
+      // Canonieke tokens staan in docs/design.md; CSS-variabelen leveren light/dark.
       fontFamily: {
         sans: [
           'Hanken Grotesk',
@@ -16,29 +16,29 @@ export default {
         ],
       },
       colors: {
-        'surface-page': '#f7f1e6',
-        'surface-card': '#ffffff',
-        'surface-muted': '#f0e7d6',
-        'surface-track': '#ece0cd',
-        ink: '#2a2621',
-        'text-muted': '#8a857c',
-        'text-subtle': '#6f6a63',
-        'text-faint': '#a39d93',
-        'budget-under': '#2f8f5e',
-        'budget-under-start': '#3aa86c',
-        'budget-under-end': '#268a56',
-        'budget-near': '#d98a2b',
-        'budget-over': '#d8543f',
-        reward: '#8a86d6',
-        'reward-surface': '#efedf9',
-        'reward-text': '#5d59b3',
-        'reward-text-strong': '#4b479c',
-        'confidence-high': '#2f8f5e',
-        'confidence-high-surface': '#eef4ef',
-        'confidence-medium': '#b06d1a',
-        'confidence-medium-surface': '#f7efe0',
-        'confidence-low': '#c26a2c',
-        'confidence-low-surface': '#f7ece2',
+        'surface-page': 'rgb(var(--surface-page) / <alpha-value>)',
+        'surface-card': 'rgb(var(--surface-card) / <alpha-value>)',
+        'surface-muted': 'rgb(var(--surface-muted) / <alpha-value>)',
+        'surface-track': 'rgb(var(--surface-track) / <alpha-value>)',
+        ink: 'rgb(var(--ink) / <alpha-value>)',
+        'text-muted': 'rgb(var(--text-muted) / <alpha-value>)',
+        'text-subtle': 'rgb(var(--text-subtle) / <alpha-value>)',
+        'text-faint': 'rgb(var(--text-faint) / <alpha-value>)',
+        'budget-under': 'rgb(var(--budget-under) / <alpha-value>)',
+        'budget-under-start': 'rgb(var(--budget-under-start) / <alpha-value>)',
+        'budget-under-end': 'rgb(var(--budget-under-end) / <alpha-value>)',
+        'budget-near': 'rgb(var(--budget-near) / <alpha-value>)',
+        'budget-over': 'rgb(var(--budget-over) / <alpha-value>)',
+        reward: 'rgb(var(--reward) / <alpha-value>)',
+        'reward-surface': 'rgb(var(--reward-surface) / <alpha-value>)',
+        'reward-text': 'rgb(var(--reward-text) / <alpha-value>)',
+        'reward-text-strong': 'rgb(var(--reward-text-strong) / <alpha-value>)',
+        'confidence-high': 'rgb(var(--confidence-high) / <alpha-value>)',
+        'confidence-high-surface': 'rgb(var(--confidence-high-surface) / <alpha-value>)',
+        'confidence-medium': 'rgb(var(--confidence-medium) / <alpha-value>)',
+        'confidence-medium-surface': 'rgb(var(--confidence-medium-surface) / <alpha-value>)',
+        'confidence-low': 'rgb(var(--confidence-low) / <alpha-value>)',
+        'confidence-low-surface': 'rgb(var(--confidence-low-surface) / <alpha-value>)',
       },
       borderRadius: {
         sm: '11px',

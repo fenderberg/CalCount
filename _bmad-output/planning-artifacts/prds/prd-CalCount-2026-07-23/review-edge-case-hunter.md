@@ -1,3 +1,6 @@
+> Historische edge-case-inventaris van 2026-07-23. De actuele besluiten en status staan
+> in `docs/prd.md`, `docs/design.md` en `docs/handoff.md`.
+
 ```json
 [
   {

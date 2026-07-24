@@ -17,7 +17,7 @@ export function Login({ onSuccess }: { onSuccess: () => void }) {
   }
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-md flex-col justify-center bg-surface-page px-6">
+    <div className="relative mx-auto flex min-h-dvh max-w-md flex-col justify-center bg-surface-page px-6">
       <h1 className="text-3xl font-extrabold tracking-[-0.02em] text-ink">CalCount</h1>
       <p className="mt-1 text-text-muted">Log in om verder te gaan.</p>
 

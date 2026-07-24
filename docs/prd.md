@@ -6,7 +6,7 @@
 | **Auteur** | PM (BMAD-methode) |
 | **Datum** | 2026-07-23 |
 | **Versie** | v1.1 |
-| **Status** | Actief — Epics 1, 2 & 4 gebouwd en geverifieerd; Epic 3 heractiveerd; Epic 5 (Gamification) en Epic 6 (AI-advies) toegevoegd. Zie §11 voor de implementatiestatus. |
+| **Status** | Actief — Epics 1, 2, 4, 5 & 6 gebouwd; Epic 3 gedeeltelijk gebouwd en geparkeerd. Zie §11. |
 
 ---
 
@@ -39,6 +39,9 @@ Het primaire platform is de smartphone. De eerste versie richt zich op één geb
 | 2026-07-23 | v1.0 | Beslissingen §9 bevestigd; Epics 1/2/4 gebouwd; Epic 3 uitgesteld; implementatiestatus (§11) toegevoegd | PM |
 | 2026-07-23 | v1.1 | Change-signaal verwerkt: Epic 3 heractiveerd; Epic 5 (Gamification) en Epic 6 (AI-advies) toegevoegd (FR14–FR18, NFR9); UX-redesigntraject gestart (§3, §11) | PM |
 | 2026-07-23 | v1.1 (verhard) | PRD gevalideerd (rubric + adversarial + edge-case-hunter, zie `_bmad-output/planning-artifacts/prds/prd-CalCount-2026-07-23/validation-report.md`); 6 high-severity gaten opgelost via opdrachtgever-beslissingen §9 #13–18: AI-modeldefault gereconcilieerd (haiku-4-5), badge-mijlpalen concreet vastgelegd, AI-coach-geheugen/limiet bepaald (sessie-geheugen, 20/dag), streak/badge-gedrag bij retroactieve wijziging vastgelegd, daggrens/tijdzone bepaald | PM |
+| 2026-07-24 | v1.1 implementatie-update | Definitief [design.md](design.md) vastgesteld; Epic 3 geparkeerd; Story 5.1 streak gebouwd en Story 5.2/Epic 6 als volgende prioriteit bevestigd | PM/Dev |
+| 2026-07-24 | v1.1 Epic 5 | Story 5.1 en 5.2 afgerond; permanente awards, oorspronkelijke badgeweergave en aanvullende UX/dark mode gebouwd | Dev |
+| 2026-07-24 | v1.1 Epic 6 | Badgepresentatie versoberd tot tijdelijke popup, dark mode naar Profiel verplaatst en Stories 6.1/6.2 afgerond | Dev |
 
 ---
 
@@ -60,10 +63,11 @@ Het primaire platform is de smartphone. De eerste versie richt zich op één geb
 - **FR12:** De gebruiker kan de dag terugbladeren en een geschiedenis van eerdere dagen inzien.
 - **FR13:** Het systeem geeft visuele feedback (kleur/indicator) wanneer de gebruiker het dagbudget nadert of overschrijdt.
 - **FR14:** Het systeem houdt een streak bij van opeenvolgende dagen waarop de gebruiker ten minste één item heeft gelogd, en toont deze streak prominent (bv. op het hoofdscherm). De daggrens wordt bepaald door een vaste tijdzone-instelling van de gebruiker (default: apparaat-tijdzone bij eerste gebruik), niet door de ruwe kloktijd van het apparaat op het moment zelf — zo blijft de streak stabiel tijdens reizen. Wanneer een gelogd item achteraf wordt bewerkt of verwijderd (FR8), herberekent het systeem de streak op basis van de resterende loggeschiedenis (inclusief reeds bestaande historische data uit Epics 1/2/4 bij de introductie van deze functie); elk gelogd item telt mee ongeacht de bron (handmatig, product, foto — zie Epic 3).
-- **FR15:** Het systeem kent badges/prestaties toe wanneer de gebruiker onderstaande mijlpalen bereikt; behaalde badges zijn zichtbaar in de app en blijven permanent behouden, ook als de onderliggende loggeschiedenis later wordt bewerkt of verwijderd (badges worden nooit met terugwerkende kracht ingetrokken). Mijlpaal-set (v1.1): 3 dagen streak, 7 dagen streak, 30 dagen streak, 30 dagen totaal gelogd (cumulatief, niet per se aaneengesloten), en de eerste keer dat de gewichtstrend (niet één losse meting) richting het streefgewicht beweegt. Worden meerdere badges gelijktijdig behaald, dan worden deze na elkaar/gestapeld getoond, niet verloren.
+- **FR15:** Het systeem kent badges/prestaties toe wanneer de gebruiker onderstaande mijlpalen bereikt; awards blijven permanent behouden, ook als de onderliggende loggeschiedenis later wordt bewerkt of verwijderd. Een nieuwe badge is alleen als tijdelijke popup zichtbaar wanneer Voortgang wordt geopend; er is geen permanent overzicht. Mijlpaal-set (v1.1): 3 dagen streak, 7 dagen streak, 30 dagen streak, 30 dagen totaal gelogd (cumulatief, niet per se aaneengesloten), en de eerste keer dat de gewichtstrend richting het streefgewicht beweegt. Meerdere gelijktijdige badges worden gestapeld getoond.
 - **FR16:** Het systeem genereert periodiek (wekelijks, rollend venster van 7 dagen in de tijdzone van FR14) automatische AI-inzichten/tips op basis van het eetlog, de budgetnaleving en de gewichtstrend, en toont deze aan de gebruiker zonder dat hij erom hoeft te vragen. Een getoond inzicht is een momentopname en wordt niet met terugwerkende kracht herzien als latere bewerkingen (FR8) of een budgetherberekening (FR11) de brondata veranderen — het eerstvolgende inzicht reflecteert de actuele situatie.
 - **FR17:** De gebruiker kan een vraag stellen aan een interactieve AI-coach over zijn voeding, budget of voortgang, en krijgt een gepersonaliseerd antwoord gebaseerd op zijn eigen gelogde data. De coach onthoudt de gesprekscontext binnen een sessie (vervolgvragen zijn mogelijk zolang het scherm open is), maar slaat het gesprek niet persistent op: bij het opnieuw openen start een nieuw gesprek zonder geheugen aan eerdere sessies.
 - **FR18:** AI-inzichten en AI-coach-antwoorden worden gepresenteerd als suggestie/observatie, nooit als medisch advies — conform NFR8. *(Bevestigd: dit blijft de enige vangrail; de AI wordt niet expliciet gestuurd op de veilige ondergrens van Beslissing 9 — zie §9 beslissing 16.)*
+- **FR19:** De gebruiker kiest lichte of donkere weergave in Profiel; de keuze wordt bij het profiel opgeslagen en na inloggen op alle schermen toegepast.
 
 ### Non-Functional Requirements
 
@@ -75,7 +79,7 @@ Het primaire platform is de smartphone. De eerste versie richt zich op één geb
 - **NFR6:** De app blijft bruikbaar bij korte netwerkonderbreking: reeds geladen dagdata en handmatig loggen werken offline; AI-foto vereist verbinding.
 - **NFR7:** AI-kosten per fotoschatting blijven beheersbaar (richtwaarde onder enkele centen per foto) door een efficiënt visiemodel te kiezen.
 - **NFR8:** Calorieschattingen worden gepresenteerd als *schatting met marge*, niet als exacte waarde, om verkeerde precisieverwachting te voorkomen. De app is geen medisch hulpmiddel.
-- **NFR9:** De AI-coach loopt server-side via hetzelfde AI-proxy-patroon als de bestaande AI-functies (sleutel blijft server-side) en kent een dagelijkse limiet van maximaal 20 coach-vragen per gebruiker, naast een gelimiteerde contextlengte per gesprek — dit begrenst zowel kosten per gesprek als misbruik door volume, relevant omdat dit de eerste vrije-tekst AI-invoer van de app is op een onbeveiligd single-user endpoint. Zoals bij de overige AI-functies blijft de kernfunctionaliteit (budget zien, handmatig loggen) volledig bruikbaar als de AI-coach niet beschikbaar of aan de daglimiet is. *(Aanname: gecombineerde AI-kosten over foto/inzichten/coach samen worden in v1.1 niet apart gemonitord — buiten scope voor deze iteratie.)*
+- **NFR9:** De AI-coach loopt server-side via hetzelfde AI-proxy-patroon als de bestaande AI-functies (sleutel blijft server-side) en kent een dagelijkse limiet van maximaal 20 coach-vragen voor de single-user dataset, naast een gelimiteerde contextlengte per gesprek. De bestaande login-gate beperkt toegang, terwijl de daglimiet kosten en foutief volume begrenst. Zoals bij de overige AI-functies blijft de kernfunctionaliteit volledig bruikbaar als de coach niet beschikbaar of aan de daglimiet is. *(Aanname: gecombineerde AI-kosten over foto/inzichten/coach samen worden in v1.1 niet apart gemonitord — buiten scope voor deze iteratie.)*
 
 ---
 
@@ -101,7 +105,7 @@ Een rustige, snelle en aanmoedigende app die één vraag centraal beantwoordt: *
 - Log-flow foto
 - Log-flow gewicht/product
 - Voortgang & gewicht (grafiek + geschiedenis + periodieke AI-inzichten)
-- Prestaties/badges-overzicht
+- Tijdelijke badgepopup bij openen van Voortgang
 - AI-coach (vraag/antwoord over voeding en voortgang)
 - Instellingen (doel bijstellen, profiel, privacy)
 
@@ -111,7 +115,9 @@ Streven naar WCAG AA: voldoende contrast, grote tikdoelen, leesbare tekst, onder
 
 ### Branding
 
-Wordt vastgesteld in een apart UX-designdocument (redesigntraject, v1.1 change-signaal) — zie de aanbevolen volgorde in §11. Tot dat document klaar is, geldt als werkaanname: schoon, licht, met één accentkleur voor voortgang (groen = onder budget, oranje/rood = eroverheen), aangevuld met een bescheiden "beloningskleur" voor badges/streak. *(Aanname, te vervangen door het UX-designdocument.)*
+De definitieve visuele identiteit en interactiepatronen staan in [design.md](design.md).
+Kern: warme cream/ink-basis, semantische budgetkleuren, een rustige lila reward-familie
+voor streaks/badges, tabulaire cijfers en minimaal 48 px grote tikdoelen.
 
 ### Target Device and Platforms
 
@@ -141,10 +147,11 @@ Web Responsive, mobile-first (primair smartphone-portret). Desktop is niet in sc
 
 - **Frontend:** React + TypeScript als PWA (installeerbaar, camera-toegang via web API's). *(Aanname.)*
 - **Backend:** lichtgewicht API (bijv. Node/TypeScript of Python). *(Aanname — architect kiest.)*
-- **Database:** relationele opslag voor profiel, eetlog en gewicht (bijv. SQLite/Postgres). *(Aanname.)*
+- **Database:** Prisma 6 met Postgres op Neon, lokaal en in productie.
 - **AI-fotoherkenning, -inzichten en -coach:** een Claude-model dat de foto (Epic 3) of de tekstcontext (Epic 6) omzet naar een gestructureerde schatting/antwoord via een prompt die JSON/tekst teruggeeft. **Default model: `claude-haiku-4-5`** (kostenefficiëntie, v1.1-beslissing — zie §9 beslissing 13, vervangt de eerdere `claude-opus-4-8`-default uit v1.0 §9 beslissing 5). *(Aanname — nauwkeurigheid van Haiku 4.5 op foto's en advies te valideren tijdens de bouw van Epic 3/6; opschalen naar `claude-sonnet-5` blijft de aanbevolen stap als nauwkeurigheid tegenvalt.)*
 - **Voedingsdatabase:** voor handmatig loggen op gewicht een caloriereferentie per 100 g. Opties: publieke dataset (bijv. Open Food Facts) of AI-geschatte referentie. *(Aanname — bron te kiezen.)*
-- **Authenticatie:** v1 is single-user; simpele lokale/gepersonaliseerde toegang volstaat. Multi-user/login is toekomstig. *(Aanname.)*
+- **Authenticatie:** single-user toegangsgate met vaste env-geconfigureerde credentials en
+  een ondertekende sessiecookie; multi-useraccounts blijven toekomstig.
 
 ---
 
@@ -298,7 +305,7 @@ Als gebruiker wil ik zien hoeveel dagen op rij ik heb gelogd, zodat ik gemotivee
 #### Story 5.2 — Badges/prestaties toekennen en tonen
 Als gebruiker wil ik badges verdienen bij mijlpalen, zodat mijn voortgang op meer manieren zichtbaar en belonend wordt.
 - **AC1:** Het systeem kent badges toe bij het bereiken van de volgende mijlpalen: 3 dagen streak, 7 dagen streak, 30 dagen streak, 30 dagen totaal gelogd (cumulatief), en de eerste keer dat de gewichtstrend (niet één losse meting) richting het streefgewicht beweegt.
-- **AC2:** Er is een overzichtsscherm met behaalde (en nog te behalen) badges.
+- **AC2:** Een badge wordt niet permanent in de interface getoond, maar verschijnt uitsluitend als tijdelijke popup wanneer de gebruiker Voortgang opent.
 - **AC3:** Een nieuw behaalde badge wordt kort en subtiel gemeld, zonder de logflow te onderbreken; worden meerdere badges gelijktijdig behaald, dan worden deze na elkaar/gestapeld getoond (geen enkele meldingen gaan verloren).
 - **AC4:** Een eenmaal behaalde badge blijft permanent behouden en wordt nooit ingetrokken, ook niet als de loggeschiedenis die de badge opleverde later wordt bewerkt of verwijderd.
 
@@ -381,7 +388,11 @@ Deze punten zijn bevestigd tijdens de bouw (waren eerder open aannames):
 
 ## 10. Herzien: Epic 3 (AI-fotoherkenning) heractiveerd (v1.1)
 
-Epic 3 (foto maken → AI schat calorieën) was **uitgesteld** sinds v1.0 en wordt met v1.1 **heractiveerd** op verzoek van de opdrachtgever. De onderliggende infrastructuur was al voorbereid: de `photo`-bron bestaat in het datamodel, het API-contract staat in [architecture.md §5](architecture.md), en de log-flow heeft al een AI-tekstschatting die dezelfde correctie-UX gebruikt. Epic 3 vereist een `ANTHROPIC_API_KEY` om echt te testen/bouwen. De epic zelf (Stories 3.1–3.4, §6) is ongewijzigd — alleen de status verandert van uitgesteld naar gepland.
+Epic 3 werd met v1.1 heractiveerd en gedeeltelijk gebouwd: foto kiezen/comprimeren,
+`POST /api/photo/analyze`, gestructureerde AI-output en een read-only preview bestaan.
+Op 2026-07-24 heeft de opdrachtgever de verdere fotoflow geparkeerd ten gunste van
+Epics 5 en 6. Correctie/opslag (Stories 3.2–3.4) en de echte-maaltijdfoto-accuracy-check
+blijven open totdat Epic 3 opnieuw wordt geprioriteerd.
 
 De rest van de v1.0-PRD (Goals, Requirements, UI, Epics 1/2/4) blijft ongewijzigd geldig; v1.1 voegt Epic 5 en Epic 6 toe (§6) zonder bestaande scope te wijzigen.
 
@@ -393,18 +404,21 @@ De rest van de v1.0-PRD (Goals, Requirements, UI, Epics 1/2/4) blijft ongewijzig
 |---|---|---|
 | 1 — Fundament & Persoonlijk Caloriebudget | ✅ Gebouwd & geverifieerd | Profiel, TDEE/budget, één-getal-hoofdscherm |
 | 2 — Eten loggen & dagoverzicht | ✅ Gebouwd & geverifieerd | Zoeken (OFF), handmatig, AI-tekst, recent; dagtotaal; bewerken/verwijderen; dagnavigatie |
-| 3 — AI-fotoherkenning | 🔵 Heractiveerd, nog te bouwen | Zie §10 — vereist `ANTHROPIC_API_KEY` |
+| 3 — AI-fotoherkenning | ⏸️ Gedeeltelijk gebouwd, geparkeerd | Analyse + preview bestaan; correctie/opslag en accuracy-check open |
 | 4 — Voortgang & Bijsturen | ✅ Gebouwd & geverifieerd | Gewicht bijhouden, trendgrafiek + streefgewicht, auto-herberekening budget, doel bijstellen |
-| 5 — Motivatie & Gamification (licht) | 📝 Gepland (v1.1) | Streak + badges — zie §6 |
-| 6 — AI-advies & Coach | 📝 Gepland (v1.1) | Periodieke inzichten + interactieve coach — zie §6 |
+| 5 — Motivatie & Gamification (licht) | ✅ Gebouwd | Streak, vaste tijdzone, permanente awards en tijdelijke popup |
+| 6 — AI-advies & Coach | ✅ Gebouwd | Wekelijkse snapshots en sessiegebaseerde coach met daglimiet |
 
-**Nog niet gedaan:** productie-deployment (repo-kant klaar voor GitHub Pages + Render + Neon — zie [deployment.md](deployment.md); Render-service zelf nog aan te maken); Epics 3, 5 en 6.
+**Productie:** GitHub Pages, Render en Neon zijn live. De nieuwe database-migraties zijn
+op Neon toegepast; de Epic 5/6-appcode wacht nog op de normale frontend/backenddeploy.
+Open productwerk bestaat uit de geparkeerde resterende Epic 3-stories.
 
 Voor de volledige overdracht — hoe lokaal te draaien, repo-structuur, keuzes, openstaande punten — zie **[handoff.md](handoff.md)**.
 
 ### Aanbevolen volgorde (v1.1)
 1. ~~Open beslissingen §9 bevestigen.~~ ✅ (inclusief v1.1-beslissingen 10–12)
-2. ~~Architectuurdocument opstellen.~~ ✅ — nu bijwerken voor Epic 3/5/6 (nieuwe datamodel-velden voor streak/badges, AI-coach-endpoint, foto-upload-contract activeren).
-3. UX-designdocument opstellen voor de redesign (branding, schermen incl. streak/badges/AI-coach — zie §3).
-4. Epics/stories 3, 5, 6 verfijnen tot uitvoerbare taken (`bmad-create-epics-and-stories`) en implementatiegereedheid checken (`bmad-check-implementation-readiness`).
-5. Sprint-planning en bouwen, epic voor epic.
+2. ~~Architectuurdocument actualiseren.~~ ✅
+3. ~~Definitief UX-/designdocument opstellen.~~ ✅ — zie [design.md](design.md).
+4. Epic 5/6-code deployen en de mobiele UX handmatig verifiëren (migraties zijn toegepast).
+5. Productiecontrole uitvoeren voor profielthema, badgepopup, inzichten en coachlimiet.
+6. Epic 3 geparkeerd houden totdat de opdrachtgever deze opnieuw prioriteert.

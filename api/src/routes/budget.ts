@@ -1,17 +1,6 @@
-import { calculateDailyBudget, summarizeDay, type UserProfile } from '@calcount/core';
+import { calculateDailyBudget, dayBoundsUtc, summarizeDay, type UserProfile } from '@calcount/core';
 import type { FastifyInstance } from 'fastify';
 import { prisma, PROFILE_ID } from '../db.js';
-
-/** Begin en eind (exclusief) van een dag in lokale tijd. */
-function dayBounds(dateStr: string): { start: Date; end: Date } {
-  const start = new Date(`${dateStr}T00:00:00`);
-  if (Number.isNaN(start.getTime())) {
-    throw new Error('invalid-date');
-  }
-  const end = new Date(start);
-  end.setDate(end.getDate() + 1);
-  return { start, end };
-}
 
 export async function budgetRoutes(app: FastifyInstance) {
   // Dagbudget: TDEE, budget, gegeten en resterend voor een dag.
@@ -22,7 +11,7 @@ export async function budgetRoutes(app: FastifyInstance) {
 
     let bounds;
     try {
-      bounds = dayBounds(dateStr);
+      bounds = dayBoundsUtc(dateStr);
     } catch {
       return reply.code(400).send({ error: 'Ongeldige datum (verwacht YYYY-MM-DD)' });
     }

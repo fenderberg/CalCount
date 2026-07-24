@@ -41,32 +41,32 @@ export function WeightChart({ weights, targetWeightKg }: Props) {
     <div className="rounded-md border border-ink/[0.07] bg-surface-card p-3">
       <ResponsiveContainer width="100%" height={220}>
         <LineChart data={data} margin={{ top: 8, right: 12, bottom: 0, left: -16 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#ece0cd" />
-          <XAxis dataKey="label" tick={{ fontSize: 12, fill: '#a39d93' }} />
+          <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--surface-track))" />
+          <XAxis dataKey="label" tick={{ fontSize: 12, fill: 'rgb(var(--text-faint))' }} />
           <YAxis
             domain={[min, max]}
-            tick={{ fontSize: 12, fill: '#a39d93' }}
+            tick={{ fontSize: 12, fill: 'rgb(var(--text-faint))' }}
             width={40}
           />
           <Tooltip
             formatter={(v: number) => [`${v} kg`, 'Gewicht']}
-            labelStyle={{ color: '#2a2621' }}
+            labelStyle={{ color: 'rgb(var(--ink))' }}
             contentStyle={{
-              background: '#ffffff',
-              border: '1px solid rgba(42, 38, 33, 0.07)',
+              background: 'rgb(var(--surface-card))',
+              border: '1px solid rgb(var(--ink) / 0.07)',
               borderRadius: 12,
             }}
-            itemStyle={{ color: '#2a2621' }}
+            itemStyle={{ color: 'rgb(var(--ink))' }}
           />
           {targetWeightKg && (
             <ReferenceLine
               y={targetWeightKg}
-              stroke="#2f8f5e"
+              stroke="rgb(var(--budget-under))"
               strokeDasharray="5 4"
               label={{
                 value: `Doel ${targetWeightKg}`,
                 position: 'insideBottomRight',
-                fill: '#2f8f5e',
+                fill: 'rgb(var(--budget-under))',
                 fontSize: 11,
               }}
             />
@@ -74,7 +74,7 @@ export function WeightChart({ weights, targetWeightKg }: Props) {
           <Line
             type="monotone"
             dataKey="kg"
-            stroke="#2a2621"
+            stroke="rgb(var(--ink))"
             strokeWidth={2}
             dot={{ r: 3 }}
           />

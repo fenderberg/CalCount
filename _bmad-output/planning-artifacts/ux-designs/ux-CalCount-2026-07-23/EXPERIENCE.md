@@ -11,7 +11,10 @@ sources:
 
 # Experience Spec for CalCount
 
-_Behavioral companion to `DESIGN.md`. Visual tokens referenced here as `{path.to.token}` resolve against that file. Distilled from the external design-tool export produced in response to the v1.1 redesign handoff (`.working/stitch-prompt.md`)._
+> Bronartefact. De definitieve, gecombineerde en actuele designspecificatie staat in
+> `docs/design.md` en is bij verschillen leidend.
+
+_Behavioral companion to `DESIGN.md`. Visual tokens referenced here as `{path.to.token}` resolve against that source file._
 
 ## Foundation
 
@@ -75,7 +78,8 @@ Surfaced during distillation, not invented — decisions for whoever picks up im
 - **`[NOTE FOR UX]` "Beweging" (movement) stat** on the hoofdscherm ring ("0 beweging") has no backing FR anywhere in the PRD. Either drop it as a leftover placeholder from the design tool, or treat it as a genuinely new scope item to run through a future PRD update — do not build it silently.
 - **`[NOTE FOR UX]` Swipe-to-reveal list actions** are new relative to the current implementation (tap-only today). Needs a build decision: add as an enhancement to Epic 2's existing edit/delete (Story 2.3), or defer.
 - **`[NOTE FOR UX]` Badge milestone set mismatch.** The mockup shows 3d-streak / 7d-streak / eerste-trend / 30d-totaal(?) / 100d-totaal / −5kg-bereikt — richer than PRD FR15's confirmed minimal set (3/7/30-dagen streak, 30 dagen totaal gelogd, eerste trendmatige voortgang). Reconcile before building Story 5.2; the PRD's confirmed set is authoritative unless the opdrachtgever explicitly expands it.
-- **`[NOTE FOR UX]` Confidence-low color correction needed in code.** The already-implemented `PhotoResultPreview` (`web/src/screens/LogSheet.tsx`, Story 3.1) currently colors low-confidence items red — this design reserves red exclusively for over-budget and uses an orange-brown for confidence-low instead. Follow-up fix, not a new feature.
+- **`[RESOLVED 2026-07-24]` Confidence-low color.** `PhotoResultPreview` gebruikt nu
+  de oranjebruine confidence-low-token in plaats van budgetrood.
 - **`[NOTE FOR UX]` Budget-fit inline note** (correction screen) and the **Voortgang sub-tab nesting** are UX-originated clarifications/enhancements beyond what the PRD's ACs currently specify — small, low-risk, but worth a one-line PRD note if the opdrachtgever wants them tracked as confirmed scope rather than implementation detail.
 - **`[NOTE FOR UX]` Dark mode** pattern proven on 2/10 screens only; full-coverage token application still open.
 - Locked-badge accessibility (see Accessibility Floor) likely needs a small text cue added.

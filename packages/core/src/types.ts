@@ -9,6 +9,8 @@ export type ActivityLevel =
   | 'active'
   | 'very_active';
 
+export type ThemePreference = 'light' | 'dark';
+
 /** Persoonlijke gegevens + afvaldoel. Single-user v1: één profiel. */
 export interface UserProfile {
   heightCm: number;
@@ -19,6 +21,10 @@ export interface UserProfile {
   /** Doeltempo in kg/week. Negatief = afvallen (calorietekort). Bijv. -0.5. */
   goalRateKgPerWeek: number;
   targetWeightKg?: number;
+  /** Vaste IANA-tijdzone voor daggrenzen, bijvoorbeeld Europe/Amsterdam. */
+  timeZone?: string | null;
+  /** Opgeslagen weergavevoorkeur; wordt na inloggen op alle schermen toegepast. */
+  theme?: ThemePreference;
 }
 
 /** Resultaat van de budgetberekening voor één dag. */

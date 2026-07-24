@@ -1,5 +1,8 @@
 # Adversarial Review — CalCount PRD v1.1
 
+> Historische reviewmomentopname. Meerdere hieronder genoemde gaten zijn na deze review
+> opgelost; raadpleeg de canonieke documenten in `docs/` voor huidige beslissingen.
+
 Scope: findings focus on the new v1.1 material (Epic 3 reactivation, Epic 5, Epic 6, FR14–FR18, NFR9, and the touched Goals/UI/Out-of-Scope/Success Metrics/Decisions/status sections). A few findings on pre-existing material are included where the flaw is glaring.
 
 - **FR14's streak definition is trivially gameable and works against the product's actual goal.** A streak only requires "at least one logged item" per day — logging a single sip of water or a 1-kcal item preserves the streak regardless of whether the user is anywhere near their budget or even engaging meaningfully with tracking. The PRD's own success metric for "Volhouden" (§8) already measures logging days, so Epic 5 risks optimizing a metric that can be satisfied by junk logs, actively undermining the calorie-discipline goal the whole app exists for.

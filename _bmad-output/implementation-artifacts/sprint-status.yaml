@@ -1,5 +1,5 @@
 # generated: 2026-07-23
-# last_updated: 2026-07-23
+# last_updated: 2026-07-24
 # project: CalCount
 # project_key: NOKEY
 # tracking_system: file-system
@@ -42,12 +42,13 @@
 #
 # NOTE (this run): Epic 1/2/4 statuses set to 'done' from ground truth (docs/handoff.md —
 # built and verified in production), not from story-file auto-detection, since no BMAD
-# story files exist yet for already-shipped work. Epic 5/6 have approved PRD-level stories
-# (docs/prd.md §6, Stories 5.1-5.2/6.1-6.2) but no epics.md Given/When/Then breakdown yet —
-# listed here as epic-only placeholders until they go through create-epics-and-stories.
+# story files exist yet for already-shipped work. Epic 6 has approved PRD-level stories
+# but is still an epic-only placeholder until implementation starts.
+# Priority decision 2026-07-24: Epic 3 remains technically in-progress because it is
+# partially built, but is parked. Epics 5 and 6 are done.
 
 generated: 2026-07-23
-last_updated: 2026-07-23
+last_updated: 2026-07-24
 project: CalCount
 project_key: NOKEY
 tracking_system: file-system
@@ -69,8 +70,8 @@ development_status:
   2-5-daggeschiedenis-inzien: done
   epic-2-retrospective: optional
 
-  epic-3: in-progress
-  3-1-foto-maken-en-versturen: in-progress
+  epic-3: in-progress # parked; retained because work is partial, not undone
+  3-1-foto-maken-en-versturen: in-progress # parked pending accuracy check
   3-2-ai-schatting-van-gerecht-en-calorieen: backlog
   3-3-schatting-corrigeren-en-opslaan: backlog
   3-4-foto-item-hergebruiken: backlog
@@ -83,8 +84,12 @@ development_status:
   4-4-doel-bijstellen: done
   epic-4-retrospective: optional
 
-  epic-5: backlog
+  epic-5: done
+  5-1-streak-bijhouden-en-tonen: done
+  5-2-badges-prestaties-toekennen-en-tonen: done
   epic-5-retrospective: optional
 
-  epic-6: backlog
+  epic-6: done
+  6-1-periodieke-ai-inzichten: done
+  6-2-interactieve-ai-coach: done
   epic-6-retrospective: optional

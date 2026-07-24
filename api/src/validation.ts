@@ -1,4 +1,4 @@
-import type { ActivityLevel, Sex, UserProfile } from '@calcount/core';
+import type { ActivityLevel, Sex, ThemePreference, UserProfile } from '@calcount/core';
 
 const ACTIVITY_LEVELS: ActivityLevel[] = [
   'sedentary',
@@ -8,8 +8,20 @@ const ACTIVITY_LEVELS: ActivityLevel[] = [
   'very_active',
 ];
 const SEXES: Sex[] = ['male', 'female'];
+const THEMES: ThemePreference[] = ['light', 'dark'];
 
 export class ValidationError extends Error {}
+
+function timeZone(value: unknown): string | undefined {
+  if (value === undefined || value === null || value === '') return undefined;
+  const zone = String(value);
+  try {
+    new Intl.DateTimeFormat('nl-NL', { timeZone: zone }).format();
+  } catch {
+    throw new ValidationError('timeZone moet een geldige IANA-tijdzone zijn');
+  }
+  return zone;
+}
 
 function num(value: unknown, field: string, min: number, max: number): number {
   const n = typeof value === 'number' ? value : Number(value);
@@ -61,5 +73,12 @@ export function parseProfileInput(body: unknown): UserProfile {
   if (b.targetWeightKg !== undefined && b.targetWeightKg !== null) {
     profile.targetWeightKg = num(b.targetWeightKg, 'targetWeightKg', 20, 400);
   }
+  const parsedTimeZone = timeZone(b.timeZone);
+  if (parsedTimeZone) profile.timeZone = parsedTimeZone;
+  const theme = b.theme ?? 'light';
+  if (!THEMES.includes(theme as ThemePreference)) {
+    throw new ValidationError(`theme moet een van ${THEMES.join(', ')} zijn`);
+  }
+  profile.theme = theme as ThemePreference;
   return profile;
 }

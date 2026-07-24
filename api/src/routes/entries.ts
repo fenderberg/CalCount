@@ -1,3 +1,4 @@
+import { dayBoundsUtc } from '@calcount/core';
 import type { FastifyInstance } from 'fastify';
 import { prisma } from '../db.js';
 import { ValidationError } from '../validation.js';
@@ -58,14 +59,6 @@ function parseEntryInput(body: unknown, partial = false): Partial<EntryInput> {
   return out;
 }
 
-function dayBounds(dateStr: string): { start: Date; end: Date } {
-  const start = new Date(`${dateStr}T00:00:00`);
-  if (Number.isNaN(start.getTime())) throw new ValidationError('Ongeldige datum');
-  const end = new Date(start);
-  end.setDate(end.getDate() + 1);
-  return { start, end };
-}
-
 export async function entryRoutes(app: FastifyInstance) {
   // Items van een dag.
   app.get('/api/entries', async (req, reply) => {
@@ -73,13 +66,15 @@ export async function entryRoutes(app: FastifyInstance) {
       (req.query as { date?: string }).date ?? new Date().toISOString().slice(0, 10);
     let bounds;
     try {
-      bounds = dayBounds(dateStr);
+      bounds = dayBoundsUtc(dateStr);
     } catch {
       return reply.code(400).send({ error: 'Ongeldige datum (YYYY-MM-DD)' });
     }
     return prisma.foodEntry.findMany({
       where: { loggedAt: { gte: bounds.start, lt: bounds.end } },
-      orderBy: { loggedAt: 'asc' },
+      // loggedAt is nu middag-UTC per dag (gelijk voor items op dezelfde dag),
+      // dus createdAt bepaalt de stabiele volgorde binnen een dag.
+      orderBy: [{ loggedAt: 'asc' }, { createdAt: 'asc' }],
     });
   });
 

@@ -54,6 +54,76 @@ export function getBudget(date?: string): Promise<DayBudget> {
   return request<DayBudget>(`/api/budget${q}`);
 }
 
+export interface StreakSummary {
+  currentStreak: number;
+  longestStreak: number;
+  totalLoggedDays: number;
+  loggedToday: boolean;
+  today: string;
+  timeZone: string;
+}
+
+export function getStreak(timeZone: string): Promise<StreakSummary> {
+  return request<StreakSummary>(`/api/streak?timeZone=${encodeURIComponent(timeZone)}`);
+}
+
+export interface BadgeView {
+  key: 'streak-3' | 'streak-7' | 'streak-30' | 'logged-days-30' | 'weight-trend';
+  title: string;
+  description: string;
+  icon: string;
+  earnedAt: string | null;
+  current: number;
+  target: number;
+}
+
+export interface BadgeSummary {
+  badges: BadgeView[];
+  newlyEarned: BadgeView[];
+}
+
+export function getBadges(timeZone: string): Promise<BadgeSummary> {
+  return request<BadgeSummary>(`/api/badges?timeZone=${encodeURIComponent(timeZone)}`);
+}
+
+export interface AiInsight {
+  id: string;
+  windowStart: string;
+  windowEnd: string;
+  content: string;
+  createdAt: string;
+}
+
+export interface InsightResponse {
+  status: 'ready' | 'insufficient';
+  insight: AiInsight | null;
+  message?: string;
+}
+
+export function getInsights(timeZone: string): Promise<InsightResponse> {
+  return request<InsightResponse>(`/api/insights?timeZone=${encodeURIComponent(timeZone)}`);
+}
+
+export interface CoachMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+export function askCoach(
+  question: string,
+  history: CoachMessage[],
+  timeZone: string,
+): Promise<{ answer: string; remaining: number }> {
+  return request('/api/coach', {
+    method: 'POST',
+    body: JSON.stringify({ question, history, timeZone }),
+  });
+}
+
+export function getCoachUsage(timeZone: string): Promise<{ used: number; remaining: number }> {
+  return request(`/api/coach/usage?timeZone=${encodeURIComponent(timeZone)}`);
+}
+
 // ---- Epic 2: eten loggen ----
 
 export interface FoodRef {
