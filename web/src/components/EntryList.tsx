@@ -24,7 +24,7 @@ export function EntryList({ entries }: { entries: FoodEntry[] }) {
 
   if (entries.length === 0) {
     return (
-      <p className="mt-6 text-center text-sm text-slate-400">
+      <p className="mt-6 text-center text-sm text-text-faint">
         Nog niets gelogd op deze dag. Tik op + om eten toe te voegen.
       </p>
     );
@@ -36,30 +36,32 @@ export function EntryList({ entries }: { entries: FoodEntry[] }) {
         {entries.map((e) => (
           <li
             key={e.id}
-            className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3 shadow-sm"
+            className="flex items-center gap-3 rounded-md border border-ink/[0.07] bg-surface-card px-4 py-3"
           >
             <button
               onClick={() => setEditing(e)}
               className="min-w-0 flex-1 text-left"
             >
-              <p className="truncate font-medium text-slate-800">
+              <p className="truncate font-medium text-ink">
                 {e.name}
                 {e.isEstimate && (
-                  <span className="ml-1.5 text-xs text-blue-500">~schatting</span>
+                  <span className="ml-1.5 text-xs text-confidence-medium">
+                    ~schatting
+                  </span>
                 )}
               </p>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-text-faint">
                 {SOURCE_LABEL[e.source]}
                 {e.grams ? ` · ${e.grams} g` : ''}
               </p>
             </button>
-            <span className="shrink-0 font-semibold text-slate-700">
+            <span className="shrink-0 font-semibold text-ink">
               {e.calories} kcal
             </span>
             <button
               onClick={() => del.mutate(e.id)}
               aria-label="Verwijderen"
-              className="shrink-0 rounded-full px-2 py-1 text-slate-300 active:text-red-500"
+              className="shrink-0 rounded-full px-2 py-1 text-text-faint active:text-budget-over"
             >
               ✕
             </button>
@@ -101,9 +103,9 @@ function EditEntryModal({
   });
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end bg-black/30 sm:items-center sm:justify-center">
-      <div className="w-full rounded-t-3xl bg-white p-5 sm:max-w-md sm:rounded-3xl">
-        <h3 className="text-lg font-bold text-slate-900">Item bewerken</h3>
+    <div className="fixed inset-0 z-50 flex items-end bg-ink/30 sm:items-center sm:justify-center">
+      <div className="w-full rounded-t-2xl bg-surface-page p-5 sm:max-w-md sm:rounded-2xl">
+        <h3 className="text-xl font-bold text-ink">Item bewerken</h3>
         <div className="mt-4 space-y-3">
           <Field label="Naam">
             <input value={name} onChange={(e) => setName(e.target.value)} className={fc} />
@@ -131,11 +133,11 @@ function EditEntryModal({
           <button
             onClick={() => save.mutate()}
             disabled={save.isPending || name.trim() === '' || Number(calories) <= 0}
-            className="w-full rounded-2xl bg-green-600 py-3.5 font-semibold text-white disabled:opacity-40"
+            className="w-full rounded-lg bg-ink py-3.5 font-semibold text-surface-page disabled:opacity-40"
           >
             {save.isPending ? 'Opslaan...' : 'Opslaan'}
           </button>
-          <button onClick={onClose} className="w-full py-2.5 text-slate-500">
+          <button onClick={onClose} className="w-full py-2.5 text-text-muted">
             Annuleren
           </button>
         </div>
@@ -145,12 +147,12 @@ function EditEntryModal({
 }
 
 const fc =
-  'w-full rounded-2xl border border-slate-200 px-4 py-3 text-lg outline-none focus:border-green-500';
+  'w-full rounded-lg border border-ink/10 bg-surface-card px-4 py-3 text-lg text-ink outline-none focus:border-budget-under';
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-sm font-medium text-slate-700">{label}</span>
+      <span className="mb-1 block text-xs font-semibold text-text-subtle">{label}</span>
       {children}
     </label>
   );

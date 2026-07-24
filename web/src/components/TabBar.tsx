@@ -5,9 +5,10 @@ interface Props {
   onChange: (tab: Tab) => void;
 }
 
+// DESIGN.md: components.tab-bar.
 export function TabBar({ tab, onChange }: Props) {
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 mx-auto flex max-w-md border-t border-slate-100 bg-white">
+    <nav className="fixed inset-x-0 bottom-0 z-40 mx-auto flex max-w-md border-t border-ink/[0.07] bg-[rgba(250,248,244,0.92)] backdrop-blur-md">
       <TabButton
         active={tab === 'home'}
         onClick={() => onChange('home')}
@@ -38,8 +39,8 @@ function TabButton({
   return (
     <button
       onClick={onClick}
-      className={`flex flex-1 flex-col items-center gap-0.5 py-2.5 text-xs font-medium ${
-        active ? 'text-green-600' : 'text-slate-400'
+      className={`flex flex-1 flex-col items-center gap-0.5 py-2.5 text-xs font-semibold ${
+        active ? 'text-budget-under' : 'text-text-faint'
       }`}
     >
       <span className="text-lg leading-none">{icon}</span>

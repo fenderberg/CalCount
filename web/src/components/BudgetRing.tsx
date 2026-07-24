@@ -6,10 +6,17 @@ interface Props {
   status: DayStatus;
 }
 
-const COLORS: Record<DayStatus, string> = {
-  under: '#16a34a', // groen
-  near: '#f59e0b', // oranje
-  over: '#dc2626', // rood
+// DESIGN.md: components.ring-progress + colors.budget-*.
+const RING_STROKE: Record<DayStatus, string> = {
+  under: 'stroke-budget-under',
+  near: 'stroke-budget-near',
+  over: 'stroke-budget-over',
+};
+
+const TEXT_COLOR: Record<DayStatus, string> = {
+  under: 'text-budget-under',
+  near: 'text-budget-near',
+  over: 'text-budget-over',
 };
 
 /**
@@ -25,7 +32,6 @@ export function BudgetRing({ remaining, budget, status }: Props) {
   const consumed = budget - remaining;
   const fraction = budget > 0 ? Math.min(Math.max(consumed / budget, 0), 1) : 0;
   const dash = circumference * fraction;
-  const color = COLORS[status];
 
   return (
     <div className="relative" style={{ width: size, height: size }}>
@@ -35,7 +41,7 @@ export function BudgetRing({ remaining, budget, status }: Props) {
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke="#e2e8f0"
+          className="stroke-surface-track"
           strokeWidth={stroke}
         />
         <circle
@@ -43,20 +49,22 @@ export function BudgetRing({ remaining, budget, status }: Props) {
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke={color}
+          className={RING_STROKE[status]}
           strokeWidth={stroke}
           strokeLinecap="round"
           strokeDasharray={`${dash} ${circumference - dash}`}
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-sm text-slate-500">
+        <span className="text-sm font-medium text-text-muted">
           {remaining >= 0 ? 'Nog te gaan' : 'Over budget'}
         </span>
-        <span className="text-5xl font-bold" style={{ color }}>
+        <span
+          className={`text-6xl font-extrabold tracking-[-0.03em] ${TEXT_COLOR[status]}`}
+        >
           {Math.abs(remaining)}
         </span>
-        <span className="text-sm text-slate-500">kcal</span>
+        <span className="text-sm font-medium text-text-muted">kcal</span>
       </div>
     </div>
   );
