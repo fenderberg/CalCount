@@ -74,8 +74,20 @@ export function getStreak(timeZone: string): Promise<StreakSummary> {
   return request<StreakSummary>(`/api/streak?timeZone=${encodeURIComponent(timeZone)}`);
 }
 
+export type BadgeKey =
+  | 'first-log'
+  | 'streak-3'
+  | 'streak-7'
+  | 'streak-30'
+  | 'logged-days-30'
+  | 'weight-trend'
+  | 'weight-lost-5'
+  | 'weight-lost-10'
+  | 'halfway-to-goal'
+  | 'goal-reached';
+
 export interface BadgeView {
-  key: 'streak-3' | 'streak-7' | 'streak-30' | 'logged-days-30' | 'weight-trend';
+  key: BadgeKey;
   title: string;
   description: string;
   icon: string;

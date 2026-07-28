@@ -1,6 +1,6 @@
 # CalCount — Overdracht
 
-> Actuele instap voor ontwikkeling. Bijgewerkt op 2026-07-24.
+> Actuele instap voor ontwikkeling. Bijgewerkt op 2026-07-28.
 
 ## Stand van zaken
 
@@ -15,12 +15,15 @@ betrouwbare cross-origin sessie; een HttpOnly-cookie blijft als compatibiliteits
 | 2 — Eten loggen | ✅ | Zoeken, handmatig, AI-tekst, recent, CRUD, daghistorie en budgetstatus |
 | 3 — Gecombineerde AI-invoer | ✅ | Tekst, foto of beide; compressie, bewerkbare multi-itemresultaten en atomaire opslag zonder fotobewaring |
 | 4 — Voortgang | ✅ | Gewicht CRUD, trendgrafiek, streefgewicht en automatische budgetherberekening |
-| 5 — Motivatie | ✅ | Streak, vaste tijdzone, permanente awards en tijdelijke badgepopup bij openen Voortgang |
-| 6 — AI-advies | ✅ | Wekelijkse inzichtsnapshots en sessiegebaseerde AI-coach met daglimiet |
+| 5 — Motivatie | ✅ | Streak, vaste tijdzone, permanente awards, mijlpaal-badges en tijdelijke badgepopup met confetti bij openen Voortgang |
+| 6 — AI-advies | ✅ | Wekelijkse inzichtsnapshots en sessiegebaseerde AI-coach met daglimiet; inzichten en coach-antwoorden met opgemaakte markdown |
 | 7 — Voedingsbalans | ✅ | Vier dagbalken, weekgemiddelde, macroverhouding, datadekking en rustig advies |
 
 Alle geplande epics zijn functioneel gebouwd. Voor echte AI-analyse moet in de doelomgeving
 een geldige `ANTHROPIC_API_KEY` staan; lokaal is die momenteel niet geconfigureerd.
+Op 2026-07-28 is het default AI-model voor de calorieschatting opgehoogd van `claude-haiku-4-5`
+naar `claude-sonnet-5` met adaptief redeneren (`effort: medium`), voor merkbaar nauwkeuriger
+porties en voedingswaarden; het model blijft instelbaar via `CALCOUNT_AI_MODEL`.
 De productieflow is op 2026-07-24 geverifieerd met tekst-only, foto-only en de combinatie
 van foto plus aanvullende tekst; alle drie leverden volledige voedingswaarden terug.
 De actuele app-shell volgt het aangeleverde HTML-design: open-ringlogo/PWA-icon,
@@ -64,7 +67,7 @@ npm run build:web
 npm run docs:check
 ```
 
-Actuele uitslag: 32 unit tests slagen, API-typecheck en Prisma-validatie slagen en de
+Actuele uitslag: 41 unit tests slagen, API-typecheck en Prisma-validatie slagen en de
 PWA-productiebouw slaagt. De bundle is ongeveer 610 kB; Recharts lazy-loaden blijft een
 latere optimalisatie.
 
@@ -90,7 +93,8 @@ CalCount/
 │     └─ services/           auth, Open Food Facts en Anthropic
 ├─ web/src/
 │  ├─ screens/               Login, Onboarding, Home, LogSheet, Progress
-│  └─ components/            AppLogo, BudgetRing, EntryList, WeightChart, TabBar
+│  └─ components/            AppLogo, BudgetRing, EntryList, WeightChart, TabBar,
+│                            BadgeNotifications, Confetti, Markdown, NutritionBalance
 ├─ .github/workflows/        GitHub Pages deployment
 └─ render.yaml               Render Web Service
 ```
@@ -142,7 +146,7 @@ items direct mee en herberekent verwijderen automatisch.
 | `AUTH_SECRET` | HMAC-ondertekening stateless sessietoken |
 | `COOKIE_SECURE` | `true` in productie voor de aanvullende cross-origin cookie |
 | `ANTHROPIC_API_KEY` | AI-tekst, foto, inzichten en coach |
-| `CALCOUNT_AI_MODEL` | Default `claude-haiku-4-5` |
+| `CALCOUNT_AI_MODEL` | Default `claude-sonnet-5` (adaptief redeneren, `effort: medium`) |
 | `CALCOUNT_AI_PHOTO_MODEL` | Optionele foto-override |
 | `PORT` | API-poort; lokaal standaard 3001 |
 

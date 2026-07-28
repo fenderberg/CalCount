@@ -4,6 +4,7 @@ import {
   calculateStreak,
   eligibleBadgeKeys,
   hasWeightTrendTowardTarget,
+  weightMilestoneMetrics,
   type BadgeKey,
 } from '@calcount/core';
 import { prisma, PROFILE_ID } from '../db.js';
@@ -38,6 +39,7 @@ export async function evaluateBadges(today: string): Promise<{
     longestStreak: streak.longestStreak,
     totalLoggedDays: streak.totalLoggedDays,
     weightTrend: hasWeightTrendTowardTarget(weights, profile.targetWeightKg),
+    ...weightMilestoneMetrics(weights, profile.targetWeightKg),
   };
   const eligible = eligibleBadgeKeys(metrics);
   const existingKeys = new Set(existingAwards.map((award) => award.key));

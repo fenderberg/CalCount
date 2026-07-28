@@ -16,8 +16,8 @@ AI-ondersteunde calorietracker (mobile-first PWA).
 - **Epic 2 — Eten loggen & dagoverzicht: ✅ gebouwd en geverifieerd.**
 - **Epic 3 — Gecombineerde AI-invoer: ✅ gebouwd** (tekst, foto of beide; correctie en multi-itemopslag zonder fotobewaring).
 - **Epic 4 — Voortgang & Bijsturen: ✅ gebouwd en geverifieerd.**
-- **Epic 5 — Motivatie & Gamification: ✅ gebouwd** (streak, permanente badge-awards en tijdelijke meldingen).
-- **Epic 6 — AI-advies & Coach: ✅ gebouwd** (wekelijkse snapshots en sessiegebaseerde coach).
+- **Epic 5 — Motivatie & Gamification: ✅ gebouwd** (streak, permanente badge-awards, mijlpaal-badges en tijdelijke meldingen met confetti).
+- **Epic 6 — AI-advies & Coach: ✅ gebouwd** (wekelijkse snapshots en sessiegebaseerde coach; inzichten en coach-antwoorden met opgemaakte markdown).
 - **Epic 7 — Voedingsbalans: ✅ gebouwd** (dagelijkse macro-/vezelbalken en een rustig weekpatroon met datadekking).
 
 ### Epic 7
@@ -33,7 +33,8 @@ AI-ondersteunde calorietracker (mobile-first PWA).
 - Vaste, wijzigbare profieltijdzone voor stabiele daggrenzen.
 - Compacte logreeks op Vandaag; langste reeks en totaal logdagen zijn voorbereid voor badges.
 - Permanente badges voor 3/7/30 dagen streak, 30 logdagen en positieve gewichtstrend.
-- Nieuwe badges worden alleen kort getoond wanneer Voortgang wordt geopend.
+- Mijlpaal-badges voor de eerste logdag, 5 en 10 kilo kwijt, halverwege het doel en doel bereikt.
+- Nieuwe badges worden alleen kort getoond wanneer Voortgang wordt geopend, met een subtiele confetti-viering (respecteert `prefers-reduced-motion`); mijlpalen krijgen een uitbundiger melding.
 - Voortgang-subtabs, swipeacties, budget-fit-preview en een profielgebonden light/dark-thema.
 - Open-ringapp-logo, tweestaps onboarding en centrale log-FAB volgens het definitieve HTML-design.
 
@@ -45,6 +46,7 @@ AI-ondersteunde calorietracker (mobile-first PWA).
 - Interactieve AI-coach met geheugen binnen de geopende browsersessie, zonder
   persistente berichtopslag en met maximaal 20 succesvolle vragen per kalenderdag.
 - AI-advies wordt expliciet als suggestie en niet als medisch advies gepresenteerd.
+- Wekelijkse inzichten en coach-antwoorden renderen markdown (koppen, vet, opsommingen) via een lichte, afhankelijkheidsvrije renderer.
 
 ### Epic 4 in het kort
 
@@ -71,7 +73,8 @@ en tussen dagen bladeren.
 
 > **AI-schatting vereist een `ANTHROPIC_API_KEY`.** Zonder sleutel degradeert de app
 > netjes: de AI-tab toont een uitleg en verwijst naar Zoeken/Handmatig. Zet de sleutel
-> (en optioneel `CALCOUNT_AI_MODEL`, bv. `claude-haiku-4-5` voor lagere kosten) in de
+> (en optioneel `CALCOUNT_AI_MODEL`; default is `claude-sonnet-5` met adaptief redeneren
+> voor nauwkeuriger schattingen — zet bv. `claude-haiku-4-5` voor lagere kosten) in de
 > omgeving van de backend.
 
 ## Structuur (monorepo, npm workspaces)
@@ -100,7 +103,7 @@ npm run dev:web        # PWA op http://localhost:5173 (proxyt /api naar de backe
 ## Tests
 
 ```bash
-npm test               # 35 unit tests van de domeinlogica (packages/core)
+npm test               # 41 unit tests van de domeinlogica (packages/core)
 npm run docs:check     # documentatiedrift, links, routes, migraties en BMAD-status
 ```
 

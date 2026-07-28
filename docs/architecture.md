@@ -93,7 +93,14 @@ profielgewicht, waarna TDEE en budget opnieuw worden berekend.
 - Story 5.1 slaat geen afgeleide streak op; die wordt telkens uit de actuele loghistorie
   berekend. Alleen de vaste tijdzone is persistent.
 - Story 5.2 gebruikt `BadgeAward` met een unieke badgekey en `earnedAt`. Awards worden
-  alleen toegevoegd en nooit ingetrokken.
+  alleen toegevoegd en nooit ingetrokken. De badgeset omvat naast de streak-/logdag-/
+  trendbadges ook mijlpaal-badges: `first-log`, `weight-lost-5`, `weight-lost-10`,
+  `halfway-to-goal` en `goal-reached`. Nieuwe keys vergen geen migratie omdat `BadgeAward`
+  vrije key-strings bewaart; de gewichtsmijlpalen worden in `packages/core` afgeleid van de
+  eerste meting (baseline) versus de laatste, consistent met de trendberekening.
+- Een nieuw toegekende badge triggert in de frontend een lichte, afhankelijkheidsvrije
+  confetti-burst (canvas, respecteert `prefers-reduced-motion`); mijlpaal-badges krijgen een
+  uitbundiger popup. Dit is puur clientgedrag zonder API-impact.
 - `Profile.theme` bewaart `light` of `dark`; de frontend past dit na profiel-load toe.
 - Story 6.1 gebruikt `AiInsight` voor onveranderlijke zevendaagse momentopnamen.
 - Story 6.2 bewaart uitsluitend de dagteller in `AiCoachUsage`; gespreksberichten gaan
@@ -210,13 +217,19 @@ berichtlengtes en slaat ze niet op. `AiCoachUsage` begrenst succesvolle vragen o
 per kalenderdag in `Profile.timeZone`. Mislukte AI-aanroepen verbruiken geen vraag.
 Prompts beperken antwoorden tot voeding, budget en gewichtsvoortgang en eisen
 suggestieve, niet-medische formulering. Een ontbrekende sleutel of providerfout levert
-een nette 503-response zonder invloed op loggen of budget.
+een nette 503-response zonder invloed op loggen of budget. Het model levert markdown terug;
+de frontend rendert die met een lichte, afhankelijkheidsvrije `Markdown`-component (koppen,
+vet, cursief en opsommingen) voor zowel de wekelijkse inzichten als de coach-antwoorden.
 
 ### Modelconfiguratie
 
-De default is `claude-haiku-4-5` via `CALCOUNT_AI_MODEL`. Foto kan afzonderlijk worden
-overschreven met `CALCOUNT_AI_PHOTO_MODEL`. Als fotoontwikkeling wordt hervat, blijft de
-15–20 echte-maaltijdfoto's accuracy-check verplicht voordat de flow als afgerond geldt.
+De default is `claude-sonnet-5` via `CALCOUNT_AI_MODEL`, met adaptief redeneren
+(`thinking: { type: 'adaptive' }`, `output_config.effort: 'medium'`) zodat het model eerst
+over porties en voedingswaarden nadenkt vóór het de gestructureerde JSON teruggeeft — dit
+verhoogt de schattingsnauwkeurigheid. De redeneer-tokens tellen mee in `max_tokens`, dat
+daarom ruimer staat (3072–4096). Foto kan afzonderlijk worden overschreven met
+`CALCOUNT_AI_PHOTO_MODEL` (bijv. `claude-opus-4-8`); `claude-haiku-4-5` blijft de goedkope
+terugvaloptie. De 15–20 echte-maaltijdfoto's accuracy-check blijft de aanbevolen release-QA.
 
 ## 8. Authenticatie en beveiliging
 

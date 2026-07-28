@@ -168,11 +168,20 @@ implementatie is niet langer het geldige ontwerp.
 Streaks en badges gebruiken de lila reward-familie en blijven kleiner dan de budgetring.
 Op Vandaag staat de streak als compacte lila pill rechts in de dagheader: lila stip plus
 getal. Copy is feitelijk en ondersteunend, nooit uitbundig.
-Geen confetti, levels, leaderboards of agressieve animatie.
+Geen levels, leaderboards of agressieve animatie.
 
 Er is geen permanent badge-overzicht. Een nieuw verdiende badge verschijnt maximaal zes
 seconden in een rustige lila popup bij het openen van Voortgang. Meerdere gelijktijdige
-awards worden gestapeld; de popup blokkeert navigatie en logacties niet.
+awards worden gestapeld; de popup blokkeert navigatie en logacties niet. Naast de
+streak-/logdag-/trendbadges zijn er mijlpaal-badges (eerste logdag, 5 en 10 kilo kwijt,
+halverwege het doel, doel bereikt); die krijgen een iets uitbundiger popup met een
+`🎉`-label en een lila ring.
+
+Bij een nieuwe badge speelt éénmalig een subtiele confetti-burst in de reward-kleuren. Dit
+is een bewuste, begrensde uitzondering op de rustige toon: kort, niet-blokkerend, geen
+geluid, en volledig uitgeschakeld bij `prefers-reduced-motion`. Het blijft een viering van
+inzet, niet een druk gamification-mechaniek — de eerdere "geen confetti"-regel is hiermee
+herzien.
 
 ### AI-confidence
 
@@ -263,7 +272,9 @@ respecteert reduced-motion.
 | Onderwerp | Besluit/status |
 |---|---|
 | Beweging-stat op hoofdscherm | Niet bouwen; geen PRD-requirement |
-| Badge-mijlpalen | PRD-set is leidend: 3/7/30 streak, 30 logdagen, eerste positieve gewichtstrend |
+| Badge-mijlpalen | PRD-set plus mijlpalen: 3/7/30 streak, 30 logdagen, eerste positieve gewichtstrend, eerste logdag, 5/10 kilo kwijt, halverwege doel, doel bereikt |
+| Confetti bij badge | Herzien: éénmalige, subtiele confetti-burst in reward-kleuren bij een nieuwe badge; niet-blokkerend en uit bij `prefers-reduced-motion` |
+| Markdown in AI-tekst | Inzichten en coach-antwoorden renderen markdown (koppen, vet, cursief, opsommingen) via een lichte eigen renderer |
 | Swipeacties | Gebouwd; tap en `…` blijven als toegankelijke alternatieven |
 | Budget-fit-preview tijdens correctie | Gebouwd; toont resterend of overschrijding live |
 | Voortgang-subtabs | Gewicht, Voeding, wekelijkse Inzichten en AI-coach gebouwd |

@@ -16,6 +16,7 @@ import {
 import { BadgeNotifications } from '../components/BadgeNotifications.js';
 import { WeightChart } from '../components/WeightChart.js';
 import { MacroRatioBar, NutritionBars } from '../components/NutritionBalance.js';
+import { Markdown } from '../components/Markdown.js';
 import { todayStr } from '../dates.js';
 
 type ProgressView = 'weight' | 'nutrition' | 'insights' | 'coach';
@@ -242,7 +243,7 @@ function InsightsPanel({ timeZone }: { timeZone: string }) {
         <span className="flex h-[22px] min-w-[22px] items-center justify-center rounded-[7px] bg-reward px-1 text-[10px] font-extrabold text-white">AI</span>
         <h2 className="text-sm font-extrabold text-reward-text-strong">Je wekelijkse inzicht</h2>
       </div>
-      <p className="mt-3 whitespace-pre-line text-sm leading-6 text-text-subtle">{item.content}</p>
+      <Markdown text={item.content} className="mt-3 text-sm leading-6 text-text-subtle" />
       <p className="mt-4 text-xs leading-5 text-text-faint">AI-observatie en suggestie, geen medisch advies.</p>
     </section>
   );
@@ -299,7 +300,7 @@ function CoachPanel({ timeZone }: { timeZone: string }) {
                 : 'bg-surface-card text-text-subtle'
             }`}
           >
-            {message.content}
+            {message.role === 'user' ? message.content : <Markdown text={message.content} />}
           </div>
         ))}
       </div>

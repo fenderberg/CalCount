@@ -13,15 +13,24 @@ export interface AiFoodEstimate {
   confidence: 'low' | 'medium' | 'high';
 }
 
-// Model is configureerbaar; default is claude-haiku-4-5 (PRD v1.1 §9 beslissing 13).
+// Model is configureerbaar; default is claude-sonnet-5 — sterker in het redeneren
+// over porties en voedingswaarde dan het oude claude-haiku-4-5, wat de accuratesse
+// van de schatting merkbaar verbetert.
 // Let op: `||` i.p.v. `??` — een lege string in .env (CALCOUNT_AI_MODEL=) moet ook
 // terugvallen op de default, niet als "gezet" tellen.
-const MODEL = process.env.CALCOUNT_AI_MODEL || 'claude-haiku-4-5';
+const MODEL = process.env.CALCOUNT_AI_MODEL || 'claude-sonnet-5';
 
 // Losse, optionele override specifiek voor fotoherkenning: valt terug op MODEL
-// als niet gezet. Noodgreep naar claude-sonnet-5 als de accuracy-check op foto's
-// (Story 3.1 Task 1) tegenvalt, zonder de tekstschatting te raken.
+// als niet gezet. Kan los worden opgehoogd (bijv. claude-opus-4-8) zonder de
+// tekstschatting te raken.
 const PHOTO_MODEL = process.env.CALCOUNT_AI_PHOTO_MODEL || MODEL;
+
+// Adaptief redeneren laat het model eerst nadenken over porties/ingrediënten
+// vóór het de JSON teruggeeft — dat verhoogt de nauwkeurigheid. De redeneer-tokens
+// tellen mee in max_tokens, daarom de ruimere limieten in de calls hieronder.
+// `effort: 'medium'` houdt de latentie beperkt tot enkele seconden.
+const THINKING = { type: 'adaptive' } as const;
+const EFFORT = 'medium' as const;
 
 const ESTIMATE_SCHEMA = {
   type: 'object',
@@ -112,8 +121,9 @@ export async function analyzeFood(input: {
     : instruction;
   const response = await client.messages.create({
     model: hasImage ? PHOTO_MODEL : MODEL,
-    max_tokens: 1536,
-    output_config: { format: { type: 'json_schema', schema: PHOTO_ESTIMATE_SCHEMA } },
+    max_tokens: 4096,
+    thinking: THINKING,
+    output_config: { format: { type: 'json_schema', schema: PHOTO_ESTIMATE_SCHEMA }, effort: EFFORT },
     messages: [{ role: 'user', content }],
   });
   const textBlock = response.content.find((block) => block.type === 'text');
@@ -134,8 +144,9 @@ export async function estimateFromText(description: string): Promise<AiFoodEstim
   const client = new Anthropic();
   const response = await client.messages.create({
     model: MODEL,
-    max_tokens: 1024,
-    output_config: { format: { type: 'json_schema', schema: ESTIMATE_SCHEMA } },
+    max_tokens: 3072,
+    thinking: THINKING,
+    output_config: { format: { type: 'json_schema', schema: ESTIMATE_SCHEMA }, effort: EFFORT },
     messages: [
       {
         role: 'user',
@@ -193,8 +204,9 @@ export async function estimateFromPhoto(
   const client = new Anthropic();
   const response = await client.messages.create({
     model: PHOTO_MODEL,
-    max_tokens: 1024,
-    output_config: { format: { type: 'json_schema', schema: PHOTO_ESTIMATE_SCHEMA } },
+    max_tokens: 4096,
+    thinking: THINKING,
+    output_config: { format: { type: 'json_schema', schema: PHOTO_ESTIMATE_SCHEMA }, effort: EFFORT },
     messages: [
       {
         role: 'user',

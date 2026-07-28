@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CalCount · 105 ideeën onderweg naar 95 kg</title>
+<style>
+  :root {
+    --page: #f7f1e6;
+    --card: #fffaf1;
+    --ink: #2a2621;
+    --muted: #7a7264;
+    --faint: #a89e8d;
+    --line: rgba(42,38,33,.10);
+    --budget: #4b8a6f;   /* onder budget / groen */
+    --reward: #6b5bd2;   /* AI / inzicht paars */
+    --nutrition: #c07a3e;/* voeding oranje */
+    --over: #c0533e;     /* over budget rood */
+    --gold: #cf9d3a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background:
+      radial-gradient(120% 60% at 50% -10%, #fdf7ec 0%, var(--page) 55%),
+      var(--page);
+    color: var(--ink);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 20px 120px; }
+
+  /* ---------- HERO ---------- */
+  .hero { padding: 72px 0 40px; text-align: center; position: relative; }
+  .kicker {
+    display: inline-block; font-size: 12px; font-weight: 800; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--reward);
+    background: rgba(107,91,210,.10); padding: 6px 14px; border-radius: 999px;
+  }
+  h1 {
+    font-size: clamp(34px, 6vw, 62px); line-height: 1.02; letter-spacing: -.03em;
+    margin: 22px 0 10px; font-weight: 850;
+  }
+  h1 .accent { color: var(--budget); }
+  .lede { max-width: 640px; margin: 8px auto 0; color: var(--muted); font-size: 18px; }
+  .stats { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 34px; }
+  .stat {
+    background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+    padding: 16px 22px; min-width: 120px; box-shadow: 0 1px 0 rgba(42,38,33,.03);
+  }
+  .stat b { display: block; font-size: 30px; letter-spacing: -.02em; }
+  .stat span { font-size: 12px; color: var(--faint); font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ---------- ROUTE / NORTH STAR ---------- */
+  .northstar {
+    margin-top: 52px; background: linear-gradient(135deg, #2f2b25, #3d372e);
+    color: #f4ecdd; border-radius: 26px; padding: 34px 30px; position: relative; overflow: hidden;
+  }
+  .northstar::after {
+    content: ""; position: absolute; right: -60px; top: -60px; width: 240px; height: 240px;
+    background: radial-gradient(circle, rgba(207,157,58,.35), transparent 70%);
+  }
+  .northstar .tag { color: var(--gold); font-weight: 800; letter-spacing: .12em; font-size: 12px; text-transform: uppercase; }
+  .northstar h2 { font-size: clamp(22px, 3.4vw, 30px); margin: 10px 0 6px; letter-spacing: -.02em; }
+  .northstar p { color: #d8cdb8; margin: 0; max-width: 720px; }
+  .route { display: flex; align-items: center; gap: 8px; margin-top: 24px; flex-wrap: wrap; font-size: 13px; }
+  .route .node { display: flex; align-items: center; gap: 7px; background: rgba(255,255,255,.07); padding: 8px 13px; border-radius: 999px; }
+  .route .dot { width: 9px; height: 9px; border-radius: 50%; }
+  .route .arrow { color: #cbb9a0; opacity: .7; }
+  .route .flag { background: var(--gold); color: #2a2621; font-weight: 800; }
+
+  /* ---------- SECTION HEADERS ---------- */
+  .section-head { margin: 66px 0 8px; }
+  .section-head h3 { font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin: 0; }
+  .section-head p { margin: 4px 0 0; color: var(--faint); font-size: 14px; }
+
+  /* ---------- TECHNIQUE LEGS ---------- */
+  .leg { margin-top: 30px; }
+  .leg-head { display: flex; align-items: baseline; gap: 12px; padding-bottom: 14px; border-bottom: 2px solid var(--legc, var(--ink)); }
+  .leg-num {
+    font-size: 12px; font-weight: 800; color: #fff; background: var(--legc, var(--ink));
+    width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; flex: none; transform: translateY(-2px);
+  }
+  .leg-head h4 { margin: 0; font-size: 20px; letter-spacing: -.01em; }
+  .leg-head .count { margin-left: auto; font-size: 12px; font-weight: 700; color: var(--faint); }
+  .leg-emoji { font-size: 18px; }
+  .ideas { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; margin-top: 16px; }
+  .idea {
+    background: var(--card); border: 1px solid var(--line); border-left: 3px solid var(--legc, var(--ink));
+    border-radius: 12px; padding: 13px 15px; font-size: 14.5px; color: #3b352d;
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  .idea:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(42,38,33,.08); }
+  .idea .i { color: var(--faint); font-weight: 800; font-size: 11px; margin-right: 6px; }
+  .idea.star { border-left-width: 3px; box-shadow: 0 0 0 2px rgba(207,157,58,.25) inset; }
+  .idea.star::after { content: " ★"; color: var(--gold); }
+
+  /* ---------- SYNTHESIS ---------- */
+  .synth { margin-top: 74px; }
+  .clusters { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; margin-top: 20px; }
+  .cluster { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 20px; }
+  .cluster .chip { font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; }
+  .cluster h5 { margin: 12px 0 6px; font-size: 18px; letter-spacing: -.01em; }
+  .cluster p { margin: 0; color: var(--muted); font-size: 14px; }
+  .links { margin-top: 26px; display: grid; gap: 12px; }
+  .link {
+    background: linear-gradient(135deg, rgba(107,91,210,.07), rgba(75,138,111,.07));
+    border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px;
+  }
+  .link b { color: var(--reward); }
+  .directions { margin-top: 30px; background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 8px 6px; }
+  .directions .d { display: flex; gap: 14px; padding: 16px 18px; border-bottom: 1px solid var(--line); }
+  .directions .d:last-child { border-bottom: 0; }
+  .directions .d b { font-size: 15px; }
+  .directions .d span { color: var(--muted); font-size: 14px; }
+  .directions .n { font-size: 22px; font-weight: 850; color: var(--budget); flex: none; width: 30px; }
+
+  footer { margin-top: 70px; text-align: center; color: var(--faint); font-size: 13px; }
+  footer .heart { color: var(--over); }
+
+  @media (max-width: 560px) {
+    .hero { padding: 48px 0 24px; }
+    .ideas { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <span class="kicker">Brainstormsessie · 28 juli 2026</span>
+    <h1>105 ideeën, onderweg naar <span class="accent">95 kg</span></h1>
+    <p class="lede">Een creatieve verkenning van wat CalCount nog méér kan zijn — voor jou, een echte gebruiker die de app al een tijd gebruikt.</p>
+    <div class="stats">
+      <div class="stat"><b>105</b><span>Ideeën</span></div>
+      <div class="stat"><b>8</b><span>Technieken</span></div>
+      <div class="stat"><b>6</b><span>Clusters</span></div>
+      <div class="stat"><b>4</b><span>Richtingen</span></div>
+    </div>
+  </header>
+
+  <section class="northstar">
+    <span class="tag">★ De doorbraak</span>
+    <h2>CalCount als navigatie, niet als boekhouding</h2>
+    <p>De sterkste vondst van de sessie herkadert de héle app. "Route naar 95 kg" maakt van budget je <b>snelheid</b>, van gewichtsruis een <b>herberekening</b>, en van de coach je <b>turn-by-turn begeleiding</b>. Geen dagelijkse afrekening meer, maar een reis met een bestemming in zicht.</p>
+    <div class="route">
+      <span class="node"><span class="dot" style="background:var(--over)"></span>Start · 110 kg</span>
+      <span class="arrow">→</span>
+      <span class="node"><span class="dot" style="background:var(--nutrition)"></span>Onderweg · consistentie</span>
+      <span class="arrow">→</span>
+      <span class="node"><span class="dot" style="background:var(--budget)"></span>Herberekenen bij afwijking</span>
+      <span class="arrow">→</span>
+      <span class="node flag">🏁 95 kg</span>
+    </div>
+  </section>
+
+  <div class="section-head">
+    <h3>De reis in etappes</h3>
+    <p>Elke techniek was een ander landschap. Klik nergens — laat de ideeën gewoon op je inwerken.</p>
+  </div>
+
+  <div id="legs"></div>
+
+  <section class="synth">
+    <div class="section-head">
+      <h3>Synthese · waar het samenkomt</h3>
+      <p>105 losse vonken, teruggebracht tot zes clusters en de verbindingen die je zou missen.</p>
+    </div>
+
+    <div class="clusters" id="clusters"></div>
+
+    <div class="links" id="links"></div>
+
+    <div class="section-head" style="margin-top:52px">
+      <h3>Vier gekozen richtingen</h3>
+      <p>Mijn beste inschatting van waar de meeste waarde en het meeste plezier zit.</p>
+    </div>
+    <div class="directions" id="directions"></div>
+  </section>
+
+  <footer>
+    Gemaakt tijdens een <b>Ideate-for-me</b> brainstorm · alle 105 ideeën staan in <code>.memlog.md</code><br/>
+    Met <span class="heart">♥</span> voor CalCount en de weg naar 95 kg.
+  </footer>
+
+</div>
+
+<script>
+const legs = [
+  { n:1, emoji:"🔧", color:"#c07a3e", name:"SCAMPER op bestaande features", ideas:[
+    "Vervang harde kcal-cijfers door een optionele stoplichtmodus (groen/oranje/rood) voor wie zich niet fijn voelt bij exacte getallen",
+    "Vervang het dagelijkse weegcijfer als hoofdgetal door een voortschrijdend 7-daags gemiddelde, zodat dagelijkse ruis niet demotiveert",
+    "Combineer voeding en gewicht in een verklaarkaart die gewichtspieken koppelt aan wat je die dagen at",
+    "Combineer coach en insights: laat de coach de wekelijkse insight proactief openen met een vraag",
+    "Laat AI van je vaakst gelogde items favoriet-maaltijden bouwen die je met één tik logt",
+    "Adapteer een boodschappenlijst die binnen je budget en macro-doelen past",
+    "Vergroot streaks tot een consistentie-score die ook nuldagen en gedeeltelijke logs meeneemt",
+    "Verklein loggen tot een snelle-maaltijd-spraakknop: 'twee boterhammen kaas' → gelogd",
+    "Gebruik gewichtsdata als vochtdetector die waarschijnlijke schommelingen markeert",
+    "Gebruik de budgetlogica als bankmodel: spaar kcal op door de week voor een weekenddiner",
+    "Elimineer handmatige portie-invoer: foto → AI-schatting, jij bevestigt met een schuifje",
+    "Elimineer nul-dagen-schaamte met een neutrale 'ik ging niet loggen maar ga door'-modus",
+    "Draai loggen om: plan je maaltijden 's ochtends vooruit i.p.v. achteraf registreren",
+    "Draai de coach om: laat de app elke avond één gerichte vraag stellen",
+    "Draai het doel om: maak 'eiwit gehaald?' en 'vezels gehaald?' hoofd-KPI's naast kcal"
+  ]},
+  { n:2, emoji:"🎨", color:"#6b5bd2", name:"Steal from other apps", ideas:[
+    "Duolingo streak-freeze: een paar tokens per maand zodat één gemiste dag je momentum niet breekt",
+    "Strava-achtige personal records: lichtste gewicht, langste logstreak, beste eiwitdag",
+    "Whoop/Oura-achtige dagelijkse readiness-score die trend, budget en slaap combineert",
+    "YNAB 'give every calorie a job': wijs je budget vooraf toe aan ontbijt, lunch, diner, snacks",
+    "Headspace-achtig micro-moment: 30 seconden reflectie na een over-budget dag, zonder oordeel",
+    "Verzamel-mechaniek: ontgrendel voedingsbadges voor variatie, zoals tien groenten deze week",
+    "BeReal-achtige willekeurige 'log-nu'-nudge op een onvoorspelbaar moment per dag",
+    "Spotify-Wrapped-achtige maand- en jaarterugblik: jouw jaar in eten",
+    "Untappd-achtige maaltijd-check-ins met korte notitie of foto als dagboek",
+    "'On this day': herinner je aan je gewicht of foto van drie maanden geleden",
+    "Robinhood-achtige trendkaart: gewicht als koers met voortschrijdend gemiddelde",
+    "Todoist-achtige natural-language logging: typ vrije tekst, AI parseert alles in één keer",
+    "Citymapper-achtige 'wat-nu'-knop: één tik → wat kan ik nu eten binnen budget",
+    "Apple-Fitness-ringen: sluit drie ringen (kcal, eiwit, vezels) i.p.v. één getal",
+    "Privébrief aan je toekomstige zelf die bij een mijlpaal wordt geopend"
+  ]},
+  { n:3, emoji:"🧭", color:"#4b8a6f", name:"Analogieën: CalCount als X", ideas:[
+    "Als bank: een kcal-rekening met sparen en rood staan, weekoverzicht als bankafschrift",
+    "Als bank met rente: consistent onder budget levert bonus-flexibiliteit voor het weekend",
+    "Als RPG: XP en levels voor loggen, wegen en doelen, die inzichten of skins ontgrendelen",
+    "Als game met boss-fights: verjaardag of feestje als speciaal level met strategie-tip vooraf",
+    "Als personal trainer: wekelijkse check-in met één concreet mini-doel, week erop geëvalueerd",
+    "Als trainer die vorm corrigeert: wijs op één gewoonte om aan te passen, niet tien",
+    "Als tuin: gezonde dagen laten een plant groeien, verwaarlozing laat 'm zacht verwelken",
+    "Als GPS: route naar 95 kg met geschatte aankomstdatum en voor/achter-op-schema",
+    "Als GPS die herberekent: bij afwijking rustig een nieuwe realistische route voorstellen",
+    "Als dagboek: stemming-tag bij maaltijden om emotioneel eten zichtbaar te maken",
+    "Als therapeut: maandelijkse patroon-brief van de AI over je relatie met eten",
+    "Als weersvoorspelling: een weekvoorspelling die risicodagen aanwijst met een tip vooraf"
+  ]},
+  { n:4, emoji:"🔀", color:"#c0533e", name:"Provocatie & omkering (PO)", ideas:[
+    "De app toont nóóit calorieën — alles wordt porties, handmaten en kleuren",
+    "De app logt volledig zelf via smartwatch of foto's, jij corrigeert alleen",
+    "Je mag maar één keer per dag loggen — dwingt tot een dagoverzicht i.p.v. micromanagen",
+    "Geen doelgewicht meer — alleen gewoontes en gevoel als maatstaf",
+    "Sociaal-first met een privé-buddy die alleen je streak ziet, niet je cijfers",
+    "Negatieve dagen bestaan niet — elke dag levert minstens één winnetje",
+    "Een eerlijke modus waarin de coach je zacht mag tegenspreken en confronteren",
+    "Eten wordt niet geteld maar als kunst gefotografeerd — tellen is bijzaak",
+    "Het budget past zich real-time aan je activiteit aan: meer bewogen = meer budget",
+    "Je concurreert alleen met je verleden-zelf van vorige maand",
+    "De app dwingt een wekelijkse vrije dag zonder loggen af om burn-out te voorkomen"
+  ]},
+  { n:5, emoji:"🚀", color:"#6b5bd2", name:"Future-casting & tech", ideas:[
+    "Handsfree spraakloggen tijdens het koken: 'voeg 200 gram kip toe'",
+    "Foto-herkenning die meerdere items op één bord tegelijk detecteert en apart logt",
+    "Barcode + AI: scan een product, AI schat een realistische portie op basis van je historie",
+    "Koppeling met Apple Health/Google Fit voor stappen, verbrande kcal en slaap",
+    "Integratie met een slimme weegschaal voor automatische gewichtssync",
+    "Wearable-nudge: een tikje op je horloge als je een maaltijd nog niet gelogd hebt",
+    "Predictive logging: de app raadt op basis van tijd en dag wat je gaat eten",
+    "AI die een restaurant-menukaart van een foto leest en de beste opties binnen budget aanraadt",
+    "Kassabon-scan waarmee AI je week-inkoop en gezondheid afleidt",
+    "Mealprep-generator: geef wat je in huis hebt, krijg een gerecht binnen je macro's",
+    "Digital twin: een simulatie van je gewicht bij verschillende gewoontes",
+    "Offline-eerste verbeteringen zodat loggen zonder internet werkt en later synct",
+    "Homescreen-widget met dagbudget en snelle log zonder de app te openen",
+    "Smartwatch-app voor snel loggen en je ringen bekijken",
+    "Slim getimede meldingen op jóuw eetmomenten i.p.v. vaste tijden"
+  ]},
+  { n:6, emoji:"📍", color:"#c07a3e", name:"Jobs-to-be-Done & momenten", ideas:[
+    "Restaurant-modus: zoek een gerecht → AI-schatting + veilige-keuze-suggestie vóór je bestelt",
+    "Borrel-modus: log snel 'handvol nootjes' en 'twee bier' met slimme snelknoppen",
+    "Vakantie-modus: pauzeer strikte tracking, houd alleen gewicht bij, hervat zacht",
+    "Ziek-dag-modus: neutrale invulling, geen streakbreuk, coach met begrip",
+    "Plateau-modus: als gewicht twee weken stilstaat, biedt de app een concreet experiment aan",
+    "Boodschappen-modus: lijst gefilterd op je patroon en wat je vaak vergeet (vezels)",
+    "Meal-prep-zondag: log of plan meerdere dagen vooruit in bulk",
+    "Avondritueel: dagafsluiting met samenvatting, compliment en één vraag",
+    "Ochtendbriefing: 'goedemorgen, budget vandaag X, gisteren viel dit op'",
+    "Sociale-druk-moment: snelle beslishulp als iemand je taart aanbiedt, met compassie",
+    "Onderweg-modus: fastfood-database met eerlijke schattingen en betere alternatieven",
+    "Sport-dag: koppel training aan extra budget of een eiwit-reminder voor herstel",
+    "Cyclus-context: duid hormonale vochtschommelingen zodat gewicht niet verkeerd wordt gelezen",
+    "Terugval-flow: opnieuw beginnen zonder schuld na een periode niet loggen"
+  ]},
+  { n:7, emoji:"🪄", color:"#4b8a6f", name:"Frictie-jagers", ideas:[
+    "Goed-genoeg-loggen: een schuif tussen snel-en-grof en precies, grove log telt gewoon mee",
+    "Herhaal-gisteren: 'zelfde ontbijt als gisteren' met één tik",
+    "Slimme recent-en-favorieten-lijst bovenaan zodat je nooit hoeft te zoeken",
+    "Bulk-bewerken met direct zichtbaar effect op je dag",
+    "Vergeten-te-loggen-herstel: 's avonds de gaten vullen met AI-gissingen die je bevestigt",
+    "Onzekerheidsmarge tonen, voortbouwend op het bestaande 'percentage bekend'",
+    "Schaamtevrije copy: nooit 'je faalde', altijd neutraal en vooruitkijkend",
+    "Snelle correctie: 'ik at maar de helft' met één tik halveren",
+    "Contextuele porties: een bord, een handvol, een mok i.p.v. altijd grammen",
+    "Eén-hand-bediening met grote tap-targets, in lijn met de designregel",
+    "Begeleide onboarding: de eerste week dagelijkse micro-tips",
+    "Uitleg-op-verzoek: tik op elk cijfer voor 'hoe is dit berekend?'",
+    "Deelbaar rapport als PDF of afbeelding voor je huisarts of diëtist",
+    "Data-export in één klik, passend bij de single-user filosofie",
+    "Thema's en een rustige modus met minder cijfers",
+    "Meertaligheid klaarzetten voor toekomstige gebruikers",
+    "Toegankelijkheid: schermlezer-labels en een optie voor groter lettertype",
+    "Waarom-dit-inzicht-transparantie: toon kort op welke data een insight is gebaseerd"
+  ]},
+  { n:8, emoji:"✨", color:"#cf9d3a", name:"Extra vondsten", ideas:[
+    "Maandreview met een foto-tijdlijn van je voortgang",
+    "Doelen naast gewicht: energie, kleding-fit en kracht als niet-scale victories",
+    "Kleine beloningen: confetti of een diepere insight bij mijlpalen",
+    "Coach-persona keuze: streng, zacht of nuchter — kies de toon die jou motiveert",
+    "Wat-als-simulator: 'als ik dagelijks 200 kcal minder eet, wanneer bereik ik 95 kg?'"
+  ]}
+];
+
+// Ideas to highlight as breakthroughs
+const stars = new Set([
+  "Als GPS: route naar 95 kg met geschatte aankomstdatum en voor/achter-op-schema",
+  "Gebruik gewichtsdata als vochtdetector die waarschijnlijke schommelingen markeert",
+  "Handsfree spraakloggen tijdens het koken: 'voeg 200 gram kip toe'",
+  "Herhaal-gisteren: 'zelfde ontbijt als gisteren' met één tik",
+  "Wat-als-simulator: 'als ik dagelijks 200 kcal minder eet, wanneer bereik ik 95 kg?'"
+]);
+
+const legsEl = document.getElementById("legs");
+legs.forEach(leg => {
+  const sec = document.createElement("div");
+  sec.className = "leg";
+  sec.style.setProperty("--legc", leg.color);
+  const cards = leg.ideas.map((t,i) =>
+    `<div class="idea${stars.has(t)?' star':''}"><span class="i">${String(leg.n)+'.'+(i+1)}</span>${t}</div>`
+  ).join("");
+  sec.innerHTML = `
+    <div class="leg-head">
+      <span class="leg-num">${leg.n}</span>
+      <span class="leg-emoji">${leg.emoji}</span>
+      <h4>${leg.name}</h4>
+      <span class="count">${leg.ideas.length} ideeën</span>
+    </div>
+    <div class="ideas">${cards}</div>`;
+  legsEl.appendChild(sec);
+});
+
+const clusters = [
+  { c:"#c07a3e", bg:"rgba(192,122,62,.12)", h:"Wrijvingsloos loggen", p:"Spraak, foto-multi-item, herhaal-gisteren, favorieten, natural language. Dé retentie-hefboom: sleur is reden #1 om te stoppen." },
+  { c:"#4b8a6f", bg:"rgba(75,138,111,.12)", h:"Van cijfers naar betekenis", p:"Stoplicht, porties, ringen, eiwit+vezels als KPI, transparantie. Minder obsessie, meer vertrouwen." },
+  { c:"#c0533e", bg:"rgba(192,83,62,.12)", h:"Schaamtevrij & compassievol", p:"Nul-dagen zonder schuld, ziek/vakantie-modi, streak-freeze, terugval-flow. Versterkt de toon die de app al heeft." },
+  { c:"#6b5bd2", bg:"rgba(107,91,210,.12)", h:"Proactieve coach", p:"Coach opent het inzicht, avondvraag, plateau-experiment, persona-keuze. Van reactief naar begeleidend." },
+  { c:"#cf9d3a", bg:"rgba(207,157,58,.15)", h:"Traject-narratief", p:"GPS-route, wat-als-simulator, wrapped-terugblik, non-scale victories. Betekenis over de lange termijn." },
+  { c:"#7a7264", bg:"rgba(122,114,100,.12)", h:"Ecosysteem-integratie", p:"Health/Fit, weegschaal, wearable, widget. De app op de plek waar je al bent." }
+];
+document.getElementById("clusters").innerHTML = clusters.map(c => `
+  <div class="cluster" style="border-top:3px solid ${c.c}">
+    <span class="chip" style="background:${c.bg};color:${c.c}">Cluster</span>
+    <h5>${c.h}</h5><p>${c.p}</p>
+  </div>`).join("");
+
+const links = [
+  "<b>Vochtdetector + cyclus-duiding + 7-daags gemiddelde = één 'eerlijk-gewicht'-feature.</b> Dit lost precíes de frustratie op uit je eigen weekinzicht — de sprong 109→110→107 die de AI 'ongewoon' noemde.",
+  "<b>Kcal-bank + activiteit-afhankelijk budget + Health-koppeling = één dynamisch budget.</b> Drie ideeën uit drie technieken die stiekem hetzelfde ding zijn.",
+  "<b>Restaurant + borrel + onderweg + sociale druk = één 'leven-buiten-de-keuken' modus-pakket.</b> Precies het gat dat de meeste trackers laten vallen."
+];
+document.getElementById("links").innerHTML = links.map(l => `<div class="link">${l}</div>`).join("");
+
+const directions = [
+  { n:1, b:"Wrijvingsloos loggen", s:"Spraak, herhaal-gisteren en slimme favorieten. Grootste hefboom om een langdurige gebruiker aan boord te houden." },
+  { n:2, b:"Het 'eerlijk-gewicht' cluster", s:"7-daags gemiddelde plus vocht- en cyclusduiding. Lost een frustratie op die je nú al ervaart." },
+  { n:3, b:"Proactieve coach + GPS-route", s:"De coach opent het gesprek, met 'route naar 95 kg' als narratief kader voor de hele app." },
+  { n:4, b:"Leven-buiten-de-keuken modi", s:"Restaurant, borrel, vakantie, ziek — met de schaamtevrije toon die CalCount kenmerkt." }
+];
+document.getElementById("directions").innerHTML = directions.map(d => `
+  <div class="d"><span class="n">${d.n}</span><div><b>${d.b}</b><br/><span>${d.s}</span></div></div>`).join("");
+</script>
+</body>
+</html>
