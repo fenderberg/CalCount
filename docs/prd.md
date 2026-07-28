@@ -44,7 +44,7 @@ Het primaire platform is de smartphone. De eerste versie richt zich op één geb
 | 2026-07-24 | v1.1 Epic 6 | Badgepresentatie versoberd tot tijdelijke popup, dark mode naar Profiel verplaatst en Stories 6.1/6.2 afgerond | Dev |
 | 2026-07-24 | v1.2 Epic 7 | Eenvoudige voedingsbalans toegevoegd: dagelijks compact, wekelijks uitgebreid, met macro's, vezels en expliciete datadekking | PM/Dev |
 | 2026-07-24 | v1.3 Epic 3 | AI-tekst en foto samengevoegd tot standaard logmodus; tijdelijke fotoverwerking, multi-itemcorrectie en atomaire opslag gebouwd | PM/Dev |
-| 2026-07-28 | v1.4 verbeteringen | AI-modeldefault opgehoogd naar `claude-sonnet-5` met adaptief redeneren (beslissing §9 #19, vervangt #13); mijlpaal-badges toegevoegd (FR15) met confetti-viering; markdown-rendering voor inzichten en coach | Dev |
+| 2026-07-28 | v1.4 verbeteringen | AI-modeldefault opgehoogd naar `claude-sonnet-5` (beslissing §9 #19, vervangt #13; redeneren uit wegens incompatibiliteit met structured outputs); mijlpaal-badges toegevoegd (FR15) met confetti-viering; markdown-rendering voor inzichten en coach | Dev |
 
 ---
 
@@ -153,7 +153,7 @@ Web Responsive, mobile-first (primair smartphone-portret). Desktop is niet in sc
 - **Frontend:** React + TypeScript als PWA (installeerbaar, camera-toegang via web API's). *(Aanname.)*
 - **Backend:** lichtgewicht API (bijv. Node/TypeScript of Python). *(Aanname — architect kiest.)*
 - **Database:** Prisma 6 met Postgres op Neon, lokaal en in productie.
-- **AI-fotoherkenning, -inzichten en -coach:** een Claude-model dat de foto (Epic 3) of de tekstcontext (Epic 6) omzet naar een gestructureerde schatting/antwoord via een prompt die JSON/tekst teruggeeft. **Default model: `claude-sonnet-5`** met adaptief redeneren (v1.4-beslissing — zie §9 beslissing 19, vervangt de haiku-4-5-default uit beslissing 13 nadat die in de praktijk te onnauwkeurig bleek). Instelbaar via `CALCOUNT_AI_MODEL`; `claude-haiku-4-5` blijft de goedkope terugval en foto kan apart via `CALCOUNT_AI_PHOTO_MODEL`.
+- **AI-fotoherkenning, -inzichten en -coach:** een Claude-model dat de foto (Epic 3) of de tekstcontext (Epic 6) omzet naar een gestructureerde schatting/antwoord via een prompt die JSON/tekst teruggeeft. **Default model: `claude-sonnet-5`** (v1.4-beslissing — zie §9 beslissing 19, vervangt de haiku-4-5-default uit beslissing 13 nadat die in de praktijk te onnauwkeurig bleek). Redeneren staat uit omdat het niet samengaat met de structured-output JSON-uitvoer. Instelbaar via `CALCOUNT_AI_MODEL`; `claude-haiku-4-5` blijft de goedkope terugval en foto kan apart via `CALCOUNT_AI_PHOTO_MODEL`.
 - **Voedingsdatabase:** voor handmatig loggen op gewicht een caloriereferentie per 100 g. Opties: publieke dataset (bijv. Open Food Facts) of AI-geschatte referentie. *(Aanname — bron te kiezen.)*
 - **Authenticatie:** single-user toegangsgate met vaste env-geconfigureerde credentials en
   een ondertekend stateless sessietoken. De browser gebruikt bearer-auth omdat cross-site
@@ -394,7 +394,7 @@ Deze punten zijn bevestigd tijdens de bouw (waren eerder open aannames):
 
 **Beslissing n.a.v. gebruik in productie (v1.4, 2026-07-28):**
 
-19. **AI-modeldefault opgehoogd naar `claude-sonnet-5`:** in de praktijk waren de calorie-/portieschattingen van `claude-haiku-4-5` vaak onnauwkeurig. De default wordt `claude-sonnet-5` met adaptief redeneren (`effort: medium`), wat de schattingskwaliteit merkbaar verbetert tegen verwaarloosbare meerkosten bij één gebruiker. **Vervangt beslissing 13.** Het model blijft instelbaar via `CALCOUNT_AI_MODEL` (`claude-haiku-4-5` blijft de goedkope terugval) en `CALCOUNT_AI_PHOTO_MODEL` (bijv. `claude-opus-4-8`). ✅ bevestigd door opdrachtgever.
+19. **AI-modeldefault opgehoogd naar `claude-sonnet-5`:** in de praktijk waren de calorie-/portieschattingen van `claude-haiku-4-5` vaak onnauwkeurig. De default wordt `claude-sonnet-5`, wat de schattingskwaliteit merkbaar verbetert tegen verwaarloosbare meerkosten bij één gebruiker. Redeneren (`thinking`) staat expliciet **uit**: een eerste poging met adaptief redeneren liet de analyse in productie falen omdat het niet samengaat met de structured-output JSON-schema-uitvoer (`output_config.format`). **Vervangt beslissing 13.** Het model blijft instelbaar via `CALCOUNT_AI_MODEL` (`claude-haiku-4-5` blijft de goedkope terugval) en `CALCOUNT_AI_PHOTO_MODEL` (bijv. `claude-opus-4-8`). ✅ bevestigd door opdrachtgever.
 
 ---
 

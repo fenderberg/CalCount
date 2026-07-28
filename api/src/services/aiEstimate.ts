@@ -25,12 +25,11 @@ const MODEL = process.env.CALCOUNT_AI_MODEL || 'claude-sonnet-5';
 // tekstschatting te raken.
 const PHOTO_MODEL = process.env.CALCOUNT_AI_PHOTO_MODEL || MODEL;
 
-// Adaptief redeneren laat het model eerst nadenken over porties/ingrediënten
-// vóór het de JSON teruggeeft — dat verhoogt de nauwkeurigheid. De redeneer-tokens
-// tellen mee in max_tokens, daarom de ruimere limieten in de calls hieronder.
-// `effort: 'medium'` houdt de latentie beperkt tot enkele seconden.
-const THINKING = { type: 'adaptive' } as const;
-const EFFORT = 'medium' as const;
+// Redeneren staat expliciet UIT. Sonnet 5 zet adaptief redeneren standaard aan als
+// je het `thinking`-veld weglaat, maar dat bleek in productie niet samen te gaan met
+// structured outputs (`output_config.format`) — de analyse faalde. Met `disabled`
+// volgt de call exact hetzelfde, beproefde pad als voorheen, nu op een sterker model.
+const THINKING = { type: 'disabled' } as const;
 
 const ESTIMATE_SCHEMA = {
   type: 'object',
@@ -121,9 +120,9 @@ export async function analyzeFood(input: {
     : instruction;
   const response = await client.messages.create({
     model: hasImage ? PHOTO_MODEL : MODEL,
-    max_tokens: 4096,
+    max_tokens: 1536,
     thinking: THINKING,
-    output_config: { format: { type: 'json_schema', schema: PHOTO_ESTIMATE_SCHEMA }, effort: EFFORT },
+    output_config: { format: { type: 'json_schema', schema: PHOTO_ESTIMATE_SCHEMA } },
     messages: [{ role: 'user', content }],
   });
   const textBlock = response.content.find((block) => block.type === 'text');
@@ -144,9 +143,9 @@ export async function estimateFromText(description: string): Promise<AiFoodEstim
   const client = new Anthropic();
   const response = await client.messages.create({
     model: MODEL,
-    max_tokens: 3072,
+    max_tokens: 1024,
     thinking: THINKING,
-    output_config: { format: { type: 'json_schema', schema: ESTIMATE_SCHEMA }, effort: EFFORT },
+    output_config: { format: { type: 'json_schema', schema: ESTIMATE_SCHEMA } },
     messages: [
       {
         role: 'user',
@@ -204,9 +203,9 @@ export async function estimateFromPhoto(
   const client = new Anthropic();
   const response = await client.messages.create({
     model: PHOTO_MODEL,
-    max_tokens: 4096,
+    max_tokens: 1536,
     thinking: THINKING,
-    output_config: { format: { type: 'json_schema', schema: PHOTO_ESTIMATE_SCHEMA }, effort: EFFORT },
+    output_config: { format: { type: 'json_schema', schema: PHOTO_ESTIMATE_SCHEMA } },
     messages: [
       {
         role: 'user',

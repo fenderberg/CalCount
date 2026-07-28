@@ -223,13 +223,14 @@ vet, cursief en opsommingen) voor zowel de wekelijkse inzichten als de coach-ant
 
 ### Modelconfiguratie
 
-De default is `claude-sonnet-5` via `CALCOUNT_AI_MODEL`, met adaptief redeneren
-(`thinking: { type: 'adaptive' }`, `output_config.effort: 'medium'`) zodat het model eerst
-over porties en voedingswaarden nadenkt vóór het de gestructureerde JSON teruggeeft — dit
-verhoogt de schattingsnauwkeurigheid. De redeneer-tokens tellen mee in `max_tokens`, dat
-daarom ruimer staat (3072–4096). Foto kan afzonderlijk worden overschreven met
-`CALCOUNT_AI_PHOTO_MODEL` (bijv. `claude-opus-4-8`); `claude-haiku-4-5` blijft de goedkope
-terugvaloptie. De 15–20 echte-maaltijdfoto's accuracy-check blijft de aanbevolen release-QA.
+De default is `claude-sonnet-5` via `CALCOUNT_AI_MODEL` — sterker in het inschatten van
+porties en voedingswaarden dan het eerdere `claude-haiku-4-5`. Redeneren staat expliciet uit
+(`thinking: { type: 'disabled' }`): adaptief redeneren gaat niet samen met de structured-output
+JSON-schema-uitvoer (`output_config.format`) en liet de analyse in productie falen; disabled
+volgt exact hetzelfde beproefde pad als voorheen, nu op een sterker model. Foto kan afzonderlijk
+worden overschreven met `CALCOUNT_AI_PHOTO_MODEL` (bijv. `claude-opus-4-8`); `claude-haiku-4-5`
+blijft de goedkope terugvaloptie. De 15–20 echte-maaltijdfoto's accuracy-check blijft de
+aanbevolen release-QA.
 
 ## 8. Authenticatie en beveiliging
 

@@ -73,8 +73,8 @@ en tussen dagen bladeren.
 
 > **AI-schatting vereist een `ANTHROPIC_API_KEY`.** Zonder sleutel degradeert de app
 > netjes: de AI-tab toont een uitleg en verwijst naar Zoeken/Handmatig. Zet de sleutel
-> (en optioneel `CALCOUNT_AI_MODEL`; default is `claude-sonnet-5` met adaptief redeneren
-> voor nauwkeuriger schattingen — zet bv. `claude-haiku-4-5` voor lagere kosten) in de
+> (en optioneel `CALCOUNT_AI_MODEL`; default is `claude-sonnet-5` voor nauwkeuriger
+> schattingen — zet bv. `claude-haiku-4-5` voor lagere kosten) in de
 > omgeving van de backend.
 
 ## Structuur (monorepo, npm workspaces)

@@ -117,7 +117,7 @@ huidige live service zijn ze al uitgevoerd.
    | `DATABASE_URL` | pooled Neon-connection string |
    | `DIRECT_URL` | directe Neon-connection string |
    | `ANTHROPIC_API_KEY` | je Claude-sleutel |
-   | `CALCOUNT_AI_MODEL` | optioneel; default `claude-sonnet-5` (adaptief redeneren), bv. `claude-haiku-4-5` voor lagere kosten |
+   | `CALCOUNT_AI_MODEL` | optioneel; default `claude-sonnet-5` (structured outputs, redeneren uit), bv. `claude-haiku-4-5` voor lagere kosten |
    | `CALCOUNT_AI_PHOTO_MODEL` | optioneel, valt terug op `CALCOUNT_AI_MODEL` |
    | `AUTH_USERNAME` | login-gebruikersnaam (simpele single-user toegangscontrole) |
    | `AUTH_PASSWORD` | login-wachtwoord |
